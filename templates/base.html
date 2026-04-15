@@ -1,0 +1,334 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LUMINA 商城{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap-5.3.0/js/bootstrap.min.js' %}">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #fcfcfc;
+            color: #111827;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        [x-cloak] { display: none !important; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen flex flex-col">
+
+<!-- 导航栏 (保持不变，但可以稍后动态化) -->
+<header class="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <!-- 移动端菜单按钮 -->
+            <div class="flex items-center sm:hidden">
+                <button type="button" class="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-black">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <line x1="4" x2="20" y1="12" y2="12"></line>
+                        <line x1="4" x2="20" y1="6" y2="6"></line>
+                        <line x1="4" x2="20" y1="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Logo -->
+            <div class="flex-shrink-0 flex items-center justify-center sm:justify-start flex-1 sm:flex-none">
+                <a href="/" class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-black text-white flex items-center justify-center rounded-lg font-bold text-xl">L</div>
+                    <span class="font-bold text-xl tracking-tight hidden sm:block">LUMINA</span>
+                </a>
+            </div>
+
+            <!-- 桌面端导航 -->
+            <nav class="hidden sm:flex space-x-8">
+                <a href="#" class="text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-black text-sm font-medium">首页</a>
+                <a href="{% url 'main:index' %}#hot-products" class="text-gray-500 hover:text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium transition-colors">商店</a>
+                <!-- 分类下拉菜单 -->
+                <div class="relative group">
+                    <button class="text-gray-500 hover:text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium transition-colors">
+                        分类
+                        <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                        {% for category in categories %}
+                            <a href="{% url 'goods:product_list_by_category' category.slug %}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-black transition-colors">
+                                {{ category.name }}
+                            </a>
+                        {% empty %}
+                            <span class="block px-4 py-2 text-sm text-gray-500">暂无分类</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <a href="#" class="text-gray-500 hover:text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium transition-colors">关于我们</a>
+            </nav>
+
+            <!-- 右侧图标 -->
+            <div class="flex items-center space-x-4 sm:space-x-6">
+                <!-- 搜索表单 -->
+                <form action="{% url 'goods:product_list' %}" method="get" class="relative hidden sm:block">
+                    <input type="text" name="q" placeholder="搜索商品..."
+                           class="w-48 lg:w-64 py-1.5 pl-3 pr-8 text-sm border border-gray-200 rounded-full focus:outline-none focus:ring-1 focus:ring-black focus:border-black transition">
+                    <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-black">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </button>
+                </form>
+
+                <!-- 心愿单图标 -->
+                {% if user.is_authenticated %}
+                    <a href="{% url 'goods:wishlist' %}" class="text-gray-400 hover:text-black transition-colors hidden sm:block">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                    </a>
+                {% endif %}
+
+                <!-- 购物车按钮 -->
+                <a href="{% url 'cart:cart_detail' %}" class="text-gray-400 hover:text-black transition-colors relative" id="cart-btn">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                    {% if cart_total_items > 0 %}
+                        <span id="cart-count" class="absolute -top-1.5 -right-1.5 bg-black text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">{{ cart_total_items }}</span>
+                    {% else %}
+                        <span id="cart-count" class="hidden absolute -top-1.5 -right-1.5 bg-black text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">0</span>
+                    {% endif %}
+                </a>
+
+                <!-- 用户菜单 (使用 Alpine.js) -->
+                <div class="relative" x-data="{ open: false }">
+                    {% if user.is_authenticated %}
+                        <!-- 登录状态：显示用户头像/图标，点击切换下拉菜单 -->
+                        <button type="button" @click="open = !open" class="flex items-center text-gray-400 hover:text-black transition-colors focus:outline-none">
+                            <!-- 默认用户图标，可替换为头像或首字母 -->
+                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-700 cursor-pointer">
+                                {% if user.first_name %}
+                                    {{ user.first_name|first|upper }}
+                                {% else %}
+                                    {{ user.username|first|upper }}
+                                {% endif %}
+                            </div>
+                        </button>
+                        <!-- 下拉菜单 -->
+                        <div x-show="open"
+                             @click.away="open = false"
+                             x-cloak
+                             class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50">
+                            <div class="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
+                                <p class="font-medium">{{ user.get_full_name|default:user.username }}</p>
+                                <p class="text-xs text-gray-500">{{ user.email }}</p>
+                            </div>
+                            <a href="{% url 'users:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">个人中心</a>
+                            <div class="border-t border-gray-100 my-1"></div>
+                            <form method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                    退出登录
+                                </button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <!-- 未登录：只显示登录图标 -->
+                        <a href="{% url 'login' %}" class="text-gray-400 hover:text-black transition-colors">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                            </svg>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+<main class="flex-grow">
+    {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+            {% for message in messages %}
+                <div class="{% if message.tags == 'success' %}bg-green-50 text-green-800 border-green-200{% else %}bg-gray-50 text-gray-800 border-gray-200{% endif %} border px-4 py-3 rounded-lg text-sm mb-4">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
+
+<!-- 页脚 (保持不变) -->
+<footer class="bg-white border-t border-gray-100 pt-16 pb-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+            <div class="space-y-4">
+                <a href="#" class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-black text-white flex items-center justify-center rounded-lg font-bold text-xl">L</div>
+                    <span class="font-bold text-xl tracking-tight">LUMINA</span>
+                </a>
+                <p class="text-gray-500 text-sm leading-relaxed max-w-xs">
+                    为现代生活方式精选的必需品。我们坚信品质、可持续性与永恒的设计。
+                </p>
+            </div>
+            <div>
+                <h3 class="font-semibold text-gray-900 mb-4 tracking-wide uppercase text-sm">选购</h3>
+                <ul class="space-y-3">
+                    <li><a href="#" class="text-gray-500 hover:text-black text-sm transition-colors">新品上市</a></li>
+                    <li><a href="#" class="text-gray-500 hover:text-black text-sm transition-colors">畅销商品</a></li>
+                    <li><a href="#" class="text-gray-500 hover:text-black text-sm transition-colors">服装</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-semibold text-gray-900 mb-4 tracking-wide uppercase text-sm">支持</h3>
+                <ul class="space-y-3">
+                    <li><a href="#" class="text-gray-500 hover:text-black text-sm transition-colors">帮助中心</a></li>
+                    <li><a href="#" class="text-gray-500 hover:text-black text-sm transition-colors">配送与退货</a></li>
+                    <li><a href="#" class="text-gray-500 hover:text-black text-sm transition-colors">联系我们</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-semibold text-gray-900 mb-4 tracking-wide uppercase text-sm">保持联系</h3>
+                <p class="text-gray-500 text-sm mb-4">订阅以获取特别优惠、免费赠品和千载难逢的折扣。</p>
+                <form class="flex flex-col sm:flex-row gap-2" onsubmit="event.preventDefault(); alert('订阅成功！');">
+                    <div class="relative flex-grow">
+                        <input type="email" class="block w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-shadow" placeholder="输入您的邮箱" required>
+                    </div>
+                    <button type="submit" class="bg-black text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors whitespace-nowrap">
+                        订阅
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-gray-400 text-sm">&copy; 2026 Lumina Store. 保留所有权利。</p>
+        </div>
+    </div>
+</footer>
+
+<!-- 全局脚本 -->
+<script>
+    // 可以保留购物车相关脚本，但稍后会重构
+    let cartCount = 0;
+    function addToCart() {
+        cartCount++;
+        const countBadge = document.getElementById('cart-count');
+        countBadge.innerText = cartCount;
+        countBadge.classList.remove('hidden');
+        const cartBtn = document.getElementById('cart-btn');
+        cartBtn.classList.add('scale-110');
+        setTimeout(() => {
+            cartBtn.classList.remove('scale-110');
+        }, 200);
+    }
+</script>   
+{% block extra_scripts %}{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+<!-- Toast 提示 -->
+<div id="toast" class="fixed bottom-4 right-4 bg-black text-white px-6 py-3 rounded-lg shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none z-50">
+    <span id="toast-message"></span>
+</div>
+<script>
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toast-message');
+    toastMessage.textContent = message;
+    toast.classList.remove('opacity-0');
+    toast.classList.add('opacity-100');
+    setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0');
+    }, 3000);
+}
+
+function updateCartBadge(count) {
+    const cartBadge = document.querySelector('#cart-btn span');
+    if (cartBadge) {
+        if (count > 0) {
+            cartBadge.textContent = count;
+            cartBadge.classList.remove('hidden');
+        } else {
+            cartBadge.classList.add('hidden');
+        }
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.add-to-cart-btn');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();  // 阻止冒泡，避免触发父级链接
+
+    const productId = btn.dataset.productId;
+    const productName = btn.dataset.productName;
+    const csrftoken = getCookie('csrftoken');
+
+    fetch(`/cart/add/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `quantity=1`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message);
+            updateCartBadge(data.cart_total);
+        } else {
+            showToast('添加失败，请重试');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('网络错误，请稍后重试');
+    });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}我的心愿单 - LUMINA{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-3xl font-bold tracking-tight text-gray-900 mb-8">我的心愿单</h1>
+
+    {% if wishlist_items %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for item in wishlist_items %}
+        <div class="group relative flex flex-col bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <div class="relative aspect-[4/5] overflow-hidden bg-gray-100">
+                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute top-3 left-3 flex flex-col gap-2">
+                    {% if item.product.is_new %}
+                    <span class="bg-black text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">新品</span>
+                    {% endif %}
+                </div>
+                <div class="absolute bottom-4 left-0 right-0 px-4 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hidden sm:block">
+                    <form action="{% url 'cart:cart_add' item.product.id %}" method="post" class="mb-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" class="w-full bg-white/90 backdrop-blur-sm text-black font-semibold py-3 rounded-xl shadow-sm hover:bg-black hover:text-white transition-colors flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 加入购物车
+                        </button>
+                    </form>
+                    <form action="{% url 'goods:wishlist_remove' item.product.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full bg-white/90 backdrop-blur-sm text-red-500 font-semibold py-3 rounded-xl shadow-sm hover:bg-red-500 hover:text-white transition-colors flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0h10"></path></svg> 移除
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="p-5 flex flex-col flex-grow">
+                <div class="text-xs text-gray-500 mb-1 uppercase tracking-wider font-medium">{{ item.product.category.name }}</div>
+                <h3 class="text-sm sm:text-base font-semibold text-gray-900 mb-2 line-clamp-1">{{ item.product.name }}</h3>
+                <div class="flex items-center gap-1 mb-3">
+                    <svg class="w-4 h-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    <span class="text-sm font-medium text-gray-700">4.8</span>
+                    <span class="text-xs text-gray-400">(124)</span>
+                </div>
+                <div class="mt-auto flex items-center justify-between">
+                    <span class="text-lg font-bold text-gray-900">${{ item.product.price }}</span>
+                    <div class="flex gap-2 sm:hidden">
+                        <form action="{% url 'cart:cart_add' item.product.id %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 active:scale-95 transition-transform">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            </button>
+                        </form>
+                        <form action="{% url 'goods:wishlist_remove' item.product.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="w-8 h-8 bg-red-100 text-red-500 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0h10"></path></svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-16">
+        <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+        <h2 class="text-2xl font-semibold text-gray-700 mb-2">心愿单还是空的</h2>
+        <p class="text-gray-500 mb-6">收藏你喜欢的商品，方便下次购买。</p>
+        <a href="{% url 'goods:product_list' %}" class="inline-block bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors">
+            浏览商品
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

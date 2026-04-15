@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}地址管理 - LUMINA{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900">收货地址</h1>
+        <a href="{% url 'users:address_add' %}" class="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors">
+            + 添加新地址
+        </a>
+    </div>
+    
+    {% if addresses %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for address in addresses %}
+        <div class="border border-gray-200 rounded-xl p-6 {% if address.is_default %}border-black bg-gray-50{% endif %}">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 class="font-semibold text-gray-900">{{ address.full_name }}</h3>
+                    <p class="text-gray-600 text-sm">{{ address.phone }}</p>
+                </div>
+                {% if address.is_default %}
+                <span class="bg-black text-white text-xs px-2 py-1 rounded-full">默认</span>
+                {% endif %}
+            </div>
+            <p class="text-gray-600 text-sm mb-4">
+                {{ address.province }}{{ address.city }}{{ address.district }}<br>
+                {{ address.address_line }}
+            </p>
+            <div class="flex gap-3">
+                <a href="{% url 'users:address_edit' address.id %}" class="text-sm text-gray-500 hover:text-black transition-colors">编辑</a>
+                <form method="post" action="{% url 'users:address_delete' address.id %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="text-sm text-gray-500 hover:text-red-500 transition-colors" onclick="return confirm('确定删除该地址吗？')">删除</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-16">
+        <p class="text-gray-500 mb-4">还没有收货地址</p>
+        <a href="{% url 'users:address_add' %}" class="inline-block bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors">
+            添加第一个地址
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

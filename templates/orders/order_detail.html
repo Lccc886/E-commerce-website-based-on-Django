@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}订单详情 - LUMINA{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold mb-8">订单 #{{ order.id }}</h1>
+    <div class="bg-gray-50 rounded-xl p-6 mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <p class="text-sm text-gray-500">下单时间：{{ order.created|date:"Y-m-d H:i" }}</p>
+                <p class="text-sm text-gray-500">订单状态：<span class="font-semibold">{{ order.get_status_display }}</span></p>
+            </div>
+            <div>
+                {% if order.status == 'pending' %}
+                <a href="#" class="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800">去支付</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white border border-gray-200 rounded-xl p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">商品信息</h2>
+        <div class="space-y-4">
+            {% for item in order.items.all %}
+            <div class="flex justify-between items-center">
+                <div>
+                    <a href="{% url 'goods:product_detail' item.product.slug %}" class="font-medium">{{ item.product.name }}</a>
+                    <p class="text-sm text-gray-500">数量：{{ item.quantity }} x ${{ item.price }}</p>
+                </div>
+                <div class="font-semibold">${{ item.get_cost }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="border-t mt-4 pt-4 text-right">
+            <span class="font-bold text-lg">总计：${{ order.get_total_cost }}</span>
+        </div>
+    </div>
+    
+    <div class="bg-white border border-gray-200 rounded-xl p-6">
+        <h2 class="text-xl font-semibold mb-4">收货信息</h2>
+        <p>{{ order.first_name }} {{ order.last_name }}</p>
+        <p>{{ order.address }}</p>
+        <p>{{ order.city }} {{ order.postal_code }}</p>
+        <p>{{ order.email }}</p>
+    </div>
+</div>
+{% endblock %}

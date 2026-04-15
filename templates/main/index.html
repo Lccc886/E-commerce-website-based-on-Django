@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}LUMINA 商城 - 首页{% endblock %}
+
+{% block content %}
+    <!-- 主视觉区 (Hero) -->
+    <div class="relative bg-gray-50 overflow-hidden">
+        <div class="max-w-7xl mx-auto">
+            <div class="relative z-10 pb-8 bg-gray-50 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32 pt-10 sm:pt-16 lg:pt-20 px-4 sm:px-6 lg:px-8">
+                <div class="sm:text-center lg:text-left">
+                        <span class="inline-block py-1 px-3 rounded-full bg-black/5 text-sm font-semibold text-black mb-4 tracking-wide">
+                            2026 春季系列
+                        </span>
+                    <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl lg:leading-[1.1]">
+                        <span class="block xl:inline">提升您的</span>
+                        <span class="block text-gray-500 xl:inline">日常格调</span>
+                    </h1>
+                    <p class="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                        探索我们的全新系列，融合极简设计、优质面料与可持续工艺。专为现代生活方式打造。
+                    </p>
+                    <div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start gap-4">
+                        <div class="rounded-full shadow">
+                            <a href="#" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full text-white bg-black hover:bg-gray-800 md:py-4 md:text-lg md:px-10 transition-all hover:scale-105 active:scale-95">
+                                立即选购
+                            </a>
+                        </div>
+                        <div class="mt-3 sm:mt-0">
+                            <a href="#" class="w-full flex items-center justify-center px-8 py-3 border border-gray-300 text-base font-medium rounded-full text-black bg-transparent hover:bg-gray-50 md:py-4 md:text-lg md:px-10 transition-all group">
+                                查看画册
+                                <svg class="ml-2 h-5 w-5 text-gray-400 group-hover:text-black transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
+            <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" src="https://picsum.photos/seed/fashionhero/1200/800" alt="Fashion model">
+            <div class="absolute inset-0 bg-gradient-to-r from-gray-50 to-transparent lg:via-gray-50/20"></div>
+        </div>
+    </div>
+
+    <!-- 服务保障 -->
+    <div class="border-y border-gray-100 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-gray-100">
+                <div class="flex flex-col items-center justify-center p-4">
+                    <svg class="w-6 h-6 text-black mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                    <h3 class="font-semibold text-sm mb-1">免费配送</h3>
+                    <p class="text-xs text-gray-500">满 $100 即可享受免邮</p>
+                </div>
+                <div class="flex flex-col items-center justify-center p-4">
+                    <svg class="w-6 h-6 text-black mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                    <h3 class="font-semibold text-sm mb-1">轻松退货</h3>
+                    <p class="text-xs text-gray-500">30 天无理由退换</p>
+                </div>
+                <div class="flex flex-col items-center justify-center p-4">
+                    <svg class="w-6 h-6 text-black mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+                    <h3 class="font-semibold text-sm mb-1">安全支付</h3>
+                    <p class="text-xs text-gray-500">100% 支付安全保障</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 热门商品 (暂时保留静态，稍后动态渲染) -->
+    <section id="hot-products" class="py-16 bg-white border-t border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-end justify-between mb-10">
+                <div>
+                    <h2 class="text-3xl font-bold tracking-tight text-gray-900 mb-2">本周热门</h2>
+                    <p class="text-gray-500">发现本周最受欢迎的单品。</p>
+                </div>
+                <a href="#" class="hidden sm:flex text-sm font-medium text-black hover:text-gray-600 items-center gap-1 transition-colors">
+                    查看所有商品 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
+                {% for product in products %}
+                    <div class="group relative flex flex-col bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                        <!-- 图片区域可点击 -->
+                        <a href="{% url 'goods:product_detail' product.slug %}" class="block">
+                            <div class="relative aspect-[4/5] overflow-hidden bg-gray-100">
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500">
+                                {% if product.is_new %}
+                                    <div class="absolute top-3 left-3 flex flex-col gap-2">
+                                        <span class="bg-black text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">新品</span>
+                                    </div>
+                                {% endif %}
+                                <!-- 悬停购物车按钮（桌面端） -->
+                                <div class="absolute bottom-4 left-0 right-0 px-4 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hidden sm:block">
+                                    <button class="add-to-cart-btn w-full bg-white/90 backdrop-blur-sm text-black font-semibold py-3 rounded-xl shadow-sm hover:bg-black hover:text-white transition-colors flex items-center justify-center gap-2"
+                                            data-product-id="{{ product.id }}"
+                                            data-product-name="{{ product.name }}">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 加入购物车
+                                    </button>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- 文字区域也可点击 -->
+                        <div class="p-5 flex flex-col flex-grow">
+                            <a href="{% url 'goods:product_detail' product.slug %}" class="hover:underline">
+                                <div class="text-xs text-gray-500 mb-1 uppercase tracking-wider font-medium">{{ product.category.name }}</div>
+                                <h3 class="text-sm sm:text-base font-semibold text-gray-900 mb-2 line-clamp-1">{{ product.name }}</h3>
+                            </a>
+                            <div class="flex items-center gap-1 mb-3">
+                                <svg class="w-4 h-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <span class="text-sm font-medium text-gray-700">4.8</span>
+                                <span class="text-xs text-gray-400">(124)</span>
+                            </div>
+                            <div class="mt-auto flex items-center justify-between">
+                                <span class="text-lg font-bold text-gray-900">${{ product.price }}</span>
+                                <!-- 移动端按钮 -->
+                                <button class="add-to-cart-btn sm:hidden w-8 h-8 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 active:scale-95 transition-transform"
+                                        data-product-id="{{ product.id }}"
+                                        data-product-name="{{ product.name }}">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="col-span-full text-center text-gray-500">暂无商品</p>
+                {% endfor %}
+            </div>
+
+        </div>
+    </section>
+
+    <!-- 促销区块 -->
+    <section class="py-20 bg-black text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-3xl sm:text-4xl font-bold mb-6 leading-tight">
+                        加入我们的奖励计划，首单享受 15% 折扣。
+                    </h2>
+                    <p class="text-gray-400 mb-8 max-w-md text-lg">
+                        每次购买均可赚取积分，获得专属特卖访问权限，并享受所有订单免费配送。
+                    </p>
+                    <button class="bg-white text-black px-8 py-3.5 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+                        立即注册
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <img src="https://picsum.photos/seed/promo1/400/500" alt="Promo 1" class="rounded-2xl object-cover w-full h-64 sm:h-80">
+                    <img src="https://picsum.photos/seed/promo2/400/500" alt="Promo 2" class="rounded-2xl object-cover w-full h-64 sm:h-80 mt-8">
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

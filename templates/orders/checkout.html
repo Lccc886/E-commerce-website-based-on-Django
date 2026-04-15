@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+{% block title %}结算 - LUMINA{% endblock %}
+
+{% block content %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900 mb-8">结算</h1>
+
+        <div class="flex flex-col lg:flex-row gap-12">
+            <!-- 订单摘要 -->
+            <div class="lg:w-1/3 order-2 lg:order-1">
+                <div class="bg-gray-50 rounded-xl p-6 sticky top-24">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">订单摘要</h2>
+                    <div class="space-y-3 mb-4">
+                        {% for item in cart_items %}
+                            <div class="flex justify-between text-sm">
+                                <span>{{ item.product.name }} x{{ item.quantity }}</span>
+                                <span>${{ item.subtotal|floatformat:2 }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="border-t border-gray-200 pt-4 flex justify-between font-semibold">
+                        <span>总计</span>
+                        <span>${{ total_price|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 收货信息表单 -->
+            <div class="lg:w-2/3 order-1 lg:order-2">
+                <form method="post" id="checkout-form">
+                    {% csrf_token %}
+
+                    <!-- 地址选择区域 -->
+                    <!-- 地址选择 -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">收货地址</label>
+                        <div class="space-y-3">
+                            {% if addresses %}
+                                <div class="space-y-2">
+                                    {% for addr in addresses %}
+                                        <label class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer {% if addr.is_default %}border-black bg-gray-50{% else %}border-gray-200 hover:bg-gray-50{% endif %}">
+                                            <input type="radio" name="address_id" value="{{ addr.id }}" class="mt-1" {% if addr.is_default %}checked{% endif %}>
+                                            <div class="flex-grow">
+                                                <div class="flex justify-between">
+                                                    <p class="font-medium">{{ addr.full_name }}</p>
+                                                    {% if addr.is_default %}
+                                                        <span class="text-xs text-black bg-gray-100 px-2 py-1 rounded">默认</span>
+                                                    {% endif %}
+                                                </div>
+                                                <p class="text-sm text-gray-600">{{ addr.phone }}</p>
+                                                <p class="text-sm text-gray-500">{{ addr.province }}{{ addr.city }}{{ addr.district }} {{ addr.address_line }}</p>
+                                            </div>
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                                <div class="text-center">
+                                    <button type="button" onclick="toggleNewAddress()" class="text-sm text-black hover:underline">+ 使用新地址</button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- 新建地址表单（初始隐藏） -->
+                    <div id="new-address-form" style="display: none;" class="mt-4 space-y-4">
+                        <!-- 收货人信息 -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="first_name" class="block text-sm font-medium text-gray-700">名</label>
+                                <input type="text" name="first_name" id="first_name" required
+                                       class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black">
+                            </div>
+                            <div>
+                                <label for="last_name" class="block text-sm font-medium text-gray-700">姓</label>
+                                <input type="text" name="last_name" id="last_name" required
+                                       class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-700">手机号</label>
+                            <input type="tel" name="phone" id="phone" required
+                                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700">邮箱</label>
+                            <input type="email" name="email" id="email" required
+                                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black">
+                        </div>
+
+                        <!-- 省市区联动 -->
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label for="id_province" class="block text-sm font-medium text-gray-700">省份</label>
+                                <select name="province" id="id_province" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                                    <option value="">请选择省份</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="id_city" class="block text-sm font-medium text-gray-700">城市</label>
+                                <select name="city" id="id_city" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                                    <option value="">请选择城市</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="id_district" class="block text-sm font-medium text-gray-700">区县</label>
+                                <select name="district" id="id_district" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                                    <option value="">请选择区县</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="address_line" class="block text-sm font-medium text-gray-700">详细地址</label>
+                            <input type="text" name="address_line" id="address_line" required
+                                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black">
+                        </div>
+
+                        <div>
+                            <label for="postal_code" class="block text-sm font-medium text-gray-700">邮政编码</label>
+                            <input type="text" name="postal_code" id="postal_code"
+                                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black">
+                        </div>
+
+                        <div class="flex items-center">
+                            <input type="checkbox" name="set_default" id="set_default" class="h-4 w-4 text-black focus:ring-black border-gray-300 rounded">
+                            <label for="set_default" class="ml-2 text-sm text-gray-700">设为默认地址</label>
+                        </div>
+                    </div>
+                    <!-- 提交按钮 -->
+                    <div class="mt-8 flex justify-end">
+                        <button type="submit" class="bg-black text-white py-3 px-8 rounded-lg font-medium hover:bg-gray-800 transition-colors">
+                            确认下单
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/china-area-data@5.0.1/dist/index.js"></script>
+<script>
+// 中国省市区数据加载函数
+function loadProvinces() {
+    const provinceSelect = document.getElementById('province');
+    // 遍历省份数据（86 代表中国）
+    if (typeof pcaa !== 'undefined' && pcaa['86']) {
+        for (let code in pcaa['86']) {
+            let option = document.createElement('option');
+            option.value = code;
+            option.text = pcaa['86'][code];
+            provinceSelect.appendChild(option);
+        }
+    } else {
+        console.error('省市区数据加载失败，请检查 china-area-data 库是否正确加载');
+    }
+}
+
+function loadCities(provinceCode) {
+    const citySelect = document.getElementById('city');
+    citySelect.innerHTML = '<option value="">请选择</option>';
+    const districtSelect = document.getElementById('district');
+    districtSelect.innerHTML = '<option value="">请选择</option>';
+    
+    if (provinceCode && typeof pcaa !== 'undefined' && pcaa[provinceCode]) {
+        for (let code in pcaa[provinceCode]) {
+            let option = document.createElement('option');
+            option.value = code;
+            option.text = pcaa[provinceCode][code];
+            citySelect.appendChild(option);
+        }
+    }
+}
+
+function loadDistricts(provinceCode, cityCode) {
+    const districtSelect = document.getElementById('district');
+    districtSelect.innerHTML = '<option value="">请选择</option>';
+    
+    if (provinceCode && cityCode && typeof pcaa !== 'undefined' && pcaa[cityCode]) {
+        for (let code in pcaa[cityCode]) {
+            let option = document.createElement('option');
+            option.value = code;
+            option.text = pcaa[cityCode][code];
+            districtSelect.appendChild(option);
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // 检查库是否正确加载
+    if (typeof pcaa === 'undefined') {
+        console.error('china-area-data 库未加载，请检查网络连接或 CDN 是否可用');
+        return;
+    }
+    
+    const provinceSelect = document.getElementById('province');
+    const citySelect = document.getElementById('city');
+    const districtSelect = document.getElementById('district');
+    
+    loadProvinces();
+    
+    provinceSelect.addEventListener('change', function() {
+        loadCities(this.value);
+    });
+    
+    citySelect.addEventListener('change', function() {
+        loadDistricts(provinceSelect.value, this.value);
+    });
+});
+function toggleNewAddress() {
+    const newForm = document.getElementById('new-address-form');
+    if (newForm.style.display === 'none') {
+        newForm.style.display = 'block';
+    } else {
+        newForm.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if category %}{{ category.name }} - LUMINA{% else %}全部商品 - LUMINA{% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <!-- 面包屑和标题 -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold tracking-tight text-gray-900">
+                    {% if category %}{{ category.name }}{% else %}全部商品{% endif %}
+                </h1>
+            </div>
+
+            <!-- 搜索框和分类筛选 -->
+            <div class="flex flex-col sm:flex-row gap-4 items-center justify-between mb-8">
+                <!-- 搜索表单 -->
+                <form method="get" class="w-full sm:w-96">
+                    <div class="relative">
+                        <input type="text" name="q" value="{{ query|default:'' }}"
+                               placeholder="搜索商品..."
+                               class="w-full border border-gray-300 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-black focus:border-black">
+                        <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-black">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+                <!-- 分类导航和标题 -->
+                <div class="flex gap-2 overflow-x-auto pb-2">
+                    <a href="{% url 'goods:product_list' %}"
+                       class="px-4 py-2 rounded-full text-sm font-medium {% if not category %}bg-black text-white{% else %}bg-gray-100 text-gray-800 hover:bg-gray-200{% endif %} transition-colors whitespace-nowrap">
+                        全部
+                    </a>
+                    {% for c in categories %}
+                        <a href="{% url 'goods:product_list_by_category' c.slug %}"
+                           class="px-4 py-2 rounded-full text-sm font-medium {% if category.slug == c.slug %}bg-black text-white{% else %}bg-gray-100 text-gray-800 hover:bg-gray-200{% endif %} transition-colors whitespace-nowrap">
+                            {{ c.name }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 商品列表网格 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
+                {% for product in page_obj %}
+                    <div class="group relative flex flex-col bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                        <a href="{% url 'goods:product_detail' product.slug %}" class="block">
+                            <div class="relative aspect-[4/5] overflow-hidden bg-gray-100">
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500">
+                                <!-- 新品标签、悬停按钮等 -->
+                            </div>
+                        </a>
+                        <div class="p-5 flex flex-col flex-grow">
+                            <a href="{% url 'goods:product_detail' product.slug %}" class="hover:underline">
+                                <div class="text-xs text-gray-500 mb-1 uppercase tracking-wider font-medium">{{ product.category.name }}</div>
+                                <h3 class="text-sm sm:text-base font-semibold text-gray-900 mb-2 line-clamp-1">{{ product.name }}</h3>
+                            </a>
+                            <div class="flex items-center gap-1 mb-3">
+                                <svg class="w-4 h-4 fill-yellow-400 text-yellow-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <span class="text-sm font-medium text-gray-700">4.8</span>
+                                <span class="text-xs text-gray-400">(124)</span>
+                            </div>
+                            <div class="mt-auto flex items-center justify-between">
+                                <span class="text-lg font-bold text-gray-900">${{ product.price }}</span>
+                                <button type="button" 
+                                        data-product-id="{{ product.id }}"
+                                        data-product-name="{{ product.name }}"
+                                        class="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 active:scale-95 transition-transform add-to-cart-btn">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-gray-500 col-span-full text-center py-12">暂无商品</p>
+                {% endfor %}
+            </div>
+
+
+
+            <!-- 分页 -->
+            {% if page_obj.has_other_pages %}
+                <div class="mt-12 flex justify-center">
+                    <nav class="inline-flex rounded-md shadow">
+                        {% if page_obj.has_previous %}
+                            <a href="?{% if query %}q={{ query }}&{% endif %}page={{ page_obj.previous_page_number }}"
+                               class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50">
+                                上一页
+                            </a>
+                        {% endif %}
+
+                        <span class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border-t border-b border-gray-300">
+                第 {{ page_obj.number }} 页 / 共 {{ page_obj.paginator.num_pages }} 页
+            </span>
+
+                        {% if page_obj.has_next %}
+                            <a href="?{% if query %}q={{ query }}&{% endif %}page={{ page_obj.next_page_number }}"
+                               class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50">
+                                下一页
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - LUMINA{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold tracking-tight text-gray-900 mb-8">{{ title }}</h1>
+    
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        
+        <div>
+            <label for="id_full_name" class="block text-sm font-medium text-gray-700">收货人姓名</label>
+            {{ form.full_name }}
+            {{ form.full_name.errors }}
+        </div>
+        
+        <div>
+            <label for="id_phone" class="block text-sm font-medium text-gray-700">联系电话</label>
+            {{ form.phone }}
+            {{ form.phone.errors }}
+        </div>
+        
+        <div class="grid grid-cols-3 gap-4">
+            <div>
+                <label for="id_province" class="block text-sm font-medium text-gray-700">省份</label>
+                {{ form.province }}
+            </div>
+            <div>
+                <label for="id_city" class="block text-sm font-medium text-gray-700">城市</label>
+                {{ form.city }}
+            </div>
+            <div>
+                <label for="id_district" class="block text-sm font-medium text-gray-700">区/县</label>
+                {{ form.district }}
+            </div>
+        </div>
+        
+        <div>
+            <label for="id_address_line" class="block text-sm font-medium text-gray-700">详细地址</label>
+            {{ form.address_line }}
+        </div>
+        
+        <div class="flex items-center">
+            {{ form.is_default }}
+            <label for="id_is_default" class="ml-2 text-sm text-gray-700">设为默认地址</label>
+        </div>
+        
+        <div class="flex gap-4">
+            <button type="submit" class="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors">
+                保存地址
+            </button>
+            <a href="{% url 'users:address_list' %}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                取消
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

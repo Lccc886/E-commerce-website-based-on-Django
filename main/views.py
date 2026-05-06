@@ -1,7 +1,9 @@
 from django.shortcuts import render
 from goods.models import Product
+from main.models import CarouselImage
+
 
 def index(request):
-    # 获取所有上架的商品，按创建时间倒序排列
-    products = Product.objects.filter(available=True).order_by('-created_at')[:4]
-    return render(request, 'main/index.html', {'products': products})
+    products = Product.objects.filter(available=True).select_related('category')[:4]
+    carousel_list = CarouselImage.objects.filter(is_active=True).select_related('product').order_by('order')
+    return render(request, 'main/index.html', {'products': products, 'carousel_list': carousel_list})

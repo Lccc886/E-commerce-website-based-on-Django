@@ -4,13 +4,15 @@
 
 {% block content %}
     <!-- 主视觉区 (Hero) -->
+    <!-- 主视觉区 (Hero) -->
     <div class="relative bg-gray-50 overflow-hidden">
         <div class="max-w-7xl mx-auto">
             <div class="relative z-10 pb-8 bg-gray-50 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32 pt-10 sm:pt-16 lg:pt-20 px-4 sm:px-6 lg:px-8">
+                <!-- 左侧文字内容不变 -->
                 <div class="sm:text-center lg:text-left">
-                        <span class="inline-block py-1 px-3 rounded-full bg-black/5 text-sm font-semibold text-black mb-4 tracking-wide">
-                            2026 春季系列
-                        </span>
+                <span class="inline-block py-1 px-3 rounded-full bg-black/5 text-sm font-semibold text-black mb-4 tracking-wide">
+                    2026 春季系列
+                </span>
                     <h1 class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl lg:leading-[1.1]">
                         <span class="block xl:inline">提升您的</span>
                         <span class="block text-gray-500 xl:inline">日常格调</span>
@@ -34,9 +36,48 @@
                 </div>
             </div>
         </div>
+
+        <!-- 右侧轮播图 -->
         <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-            <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" src="https://picsum.photos/seed/fashionhero/1200/800" alt="Fashion model">
-            <div class="absolute inset-0 bg-gradient-to-r from-gray-50 to-transparent lg:via-gray-50/20"></div>
+            <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+                <div class="carousel-indicators">
+                    {% for img in carousel_list %}
+                        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ forloop.counter0 }}"
+                                {% if forloop.first %}class="active"{% endif %}></button>
+                    {% endfor %}
+                </div>
+                <div class="carousel-inner">
+                    {% for img in carousel_list %}
+                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                            <div class="aspect-video">  <!-- 使用 aspect-video 实现自适应 -->
+                                <a href="{{ img.get_link_url }}">
+                                    <img src="{{ img.get_image_url }}" class="w-full h-full object-cover" alt="{{ img.title }}">
+                                </a>
+                            </div>
+                            {% if img.title or img.description %}
+                                <div class="carousel-caption d-none d-md-block bg-black/50 rounded p-3">
+                                    <h5>{{ img.title }}</h5>
+                                    <p>{{ img.description }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% empty %}
+                        <div class="carousel-item active">
+                            <div class="aspect-video">
+                                <img src="https://picsum.photos/seed/default/1200/800" class="w-full h-full object-cover">
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+            </div>
+            <!-- 原来的渐变层遮罩（可选，可保留） -->
+            <div class="absolute inset-0 bg-gradient-to-r from-gray-50 to-transparent lg:via-gray-50/20 pointer-events-none"></div>
         </div>
     </div>
 

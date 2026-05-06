@@ -19,10 +19,27 @@
                             </div>
                         {% endfor %}
                     </div>
+                    {% if discount > 0 %}
+                    <div class="border-t border-gray-200 pt-4 space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span>小计</span>
+                            <span>${{ total_price|floatformat:2 }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm text-green-600">
+                            <span>优惠券折扣 ({{ coupon.code }})</span>
+                            <span>-${{ discount|floatformat:2 }}</span>
+                        </div>
+                        <div class="flex justify-between font-semibold">
+                            <span>总计</span>
+                            <span>${{ final_total|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                    {% else %}
                     <div class="border-t border-gray-200 pt-4 flex justify-between font-semibold">
                         <span>总计</span>
                         <span>${{ total_price|floatformat:2 }}</span>
                     </div>
+                    {% endif %}
                 </div>
             </div>
 

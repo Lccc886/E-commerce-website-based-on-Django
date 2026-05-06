@@ -1,3 +1,1 @@
-from django.db import models
-
-# Create your models here.
+# 购物车数据存储在 session 中，无需数据库模型。

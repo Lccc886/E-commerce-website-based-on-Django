@@ -1,10 +1,13 @@
 from decimal import Decimal
+import json
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
 from django.utils import timezone
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 
 from goods.models import Product
 from users.models import Address
@@ -78,12 +81,12 @@ def checkout(request):
     cart = request.session.get('cart', {})
     if not cart:
         messages.error(request, '您的购物车是空的，无法结算。')
-        return redirect('cart:detail')
+        return redirect('cart:cart_detail')
 
     cart_items, total_price = _build_cart_items(cart)
     if not cart_items:
         messages.error(request, '购物车中没有有效商品。')
-        return redirect('cart:detail')
+        return redirect('cart:cart_detail')
 
     # 优惠券处理
     coupon_code = request.POST.get('coupon_code') or request.GET.get('coupon_code')
@@ -108,27 +111,33 @@ def checkout(request):
             first_name = request.POST.get('first_name', '')
             last_name = request.POST.get('last_name', '')
             email = request.POST.get('email', '')
-            province = request.POST.get('province', '')
-            city = request.POST.get('city', '')
+            province_code = request.POST.get('province', '')
+            city_code = request.POST.get('city', '')
             phone = request.POST.get('phone', '')
-            district = request.POST.get('district', '')
-            address_line = request.POST.get('address', '')
+            district_code = request.POST.get('district', '')
+            address_line = request.POST.get('address_line', '')
             postal_code = request.POST.get('postal_code', '')
 
-            full_address = f"{province}{city}{district} {address_line}" if province and city and district else address_line
-            if request.user.is_authenticated and province and city and address_line:
+            # 将省市区代码转换为名称（前端使用的是代码）
+            province_name = request.POST.get('province_name', province_code)
+            city_name = request.POST.get('city_name', city_code)
+            district_name = request.POST.get('district_name', district_code)
+
+            full_address = f"{province_name}{city_name}{district_name} {address_line}" if province_name and city_name and district_name else address_line
+            if request.user.is_authenticated and province_name and city_name and address_line:
                 Address.objects.create(
                     user=request.user,
                     full_name=f"{first_name} {last_name}".strip(),
                     phone=phone,
-                    province=province,
-                    city=city,
-                    district=district,
+                    province=province_name,
+                    city=city_name,
+                    district=district_name,
                     address_line=address_line,
                     postal_code=postal_code,
                     is_default=False,
                 )
             address_line = full_address
+            city = city_name
 
         try:
             with transaction.atomic():
@@ -175,3 +184,40 @@ def checkout(request):
         'addresses': addresses,
     }
     return render(request, 'orders/checkout.html', context)
+
+
+@login_required
+def order_detail(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    return render(request, 'orders/order_detail.html', {'order': order})
+
+
+@require_POST
+@login_required
+def apply_coupon(request):
+    """AJAX 请求：验证优惠券并返回折扣信息"""
+    try:
+        data = json.loads(request.body)
+        coupon_code = data.get('coupon_code', '').strip()
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': '无效的请求数据'})
+
+    cart = request.session.get('cart', {})
+    cart_items, total_price = _build_cart_items(cart)
+
+    if not cart_items:
+        return JsonResponse({'success': False, 'error': '购物车为空'})
+
+    coupon, discount, error = _apply_coupon(coupon_code, total_price, request.user)
+
+    if error:
+        return JsonResponse({'success': False, 'error': error})
+
+    return JsonResponse({
+        'success': True,
+        'coupon_code': coupon.code,
+        'discount': str(discount),
+        'discount_display': f'-${discount}',
+        'final_total': str(total_price - discount),
+        'final_total_display': f'${total_price - discount}',
+    })

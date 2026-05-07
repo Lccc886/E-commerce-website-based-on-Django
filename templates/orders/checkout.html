@@ -19,27 +19,48 @@
                             </div>
                         {% endfor %}
                     </div>
-                    {% if discount > 0 %}
-                    <div class="border-t border-gray-200 pt-4 space-y-2">
+
+                    <!-- 优惠券输入区域 -->
+                    <div class="border-t border-gray-200 pt-4 mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">优惠券</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="coupon-code" placeholder="输入优惠券代码"
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black focus:border-black">
+                            <button type="button" id="apply-coupon-btn"
+                                    class="px-4 py-2 bg-black text-white text-sm rounded-lg hover:bg-gray-800 transition-colors">
+                                应用
+                            </button>
+                        </div>
+                        <p id="coupon-message" class="text-sm mt-2 hidden"></p>
+                        <!-- 隐藏字段存储已应用的优惠券 -->
+                        <input type="hidden" name="coupon_code" id="applied-coupon-code" value="{{ coupon.code|default:'' }}">
+                    </div>
+
+                    <div id="price-summary" class="{% if discount > 0 %}border-t border-gray-200 pt-4 space-y-2{% else %}border-t border-gray-200 pt-4{% endif %}">
+                        {% if discount > 0 %}
                         <div class="flex justify-between text-sm">
                             <span>小计</span>
-                            <span>${{ total_price|floatformat:2 }}</span>
+                            <span id="subtotal">${{ total_price|floatformat:2 }}</span>
                         </div>
-                        <div class="flex justify-between text-sm text-green-600">
-                            <span>优惠券折扣 ({{ coupon.code }})</span>
-                            <span>-${{ discount|floatformat:2 }}</span>
+                        <div class="flex justify-between text-sm text-green-600" id="discount-row">
+                            <span>优惠券折扣 (<span id="coupon-display">{{ coupon.code }}</span>)</span>
+                            <span id="discount-amount">-${{ discount|floatformat:2 }}</span>
                         </div>
                         <div class="flex justify-between font-semibold">
                             <span>总计</span>
-                            <span>${{ final_total|floatformat:2 }}</span>
+                            <span id="final-total">${{ final_total|floatformat:2 }}</span>
                         </div>
+                        {% else %}
+                        <div class="flex justify-between font-semibold">
+                            <span>总计</span>
+                            <span id="final-total">${{ total_price|floatformat:2 }}</span>
+                        </div>
+                        <div id="discount-row" class="hidden flex justify-between text-sm text-green-600">
+                            <span>优惠券折扣 (<span id="coupon-display"></span>)</span>
+                            <span id="discount-amount"></span>
+                        </div>
+                        {% endif %}
                     </div>
-                    {% else %}
-                    <div class="border-t border-gray-200 pt-4 flex justify-between font-semibold">
-                        <span>总计</span>
-                        <span>${{ total_price|floatformat:2 }}</span>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
 
@@ -78,29 +99,29 @@
                         </div>
                     </div>
 
-                    <!-- 新建地址表单（初始隐藏） -->
-                    <div id="new-address-form" style="display: none;" class="mt-4 space-y-4">
+                    <!-- 新建地址表单（无已存地址时默认展示） -->
+                    <div id="new-address-form" style="display: {% if addresses %}none{% else %}block{% endif %};" class="mt-4 space-y-4">
                         <!-- 收货人信息 -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label for="first_name" class="block text-sm font-medium text-gray-700">名</label>
-                                <input type="text" name="first_name" id="first_name" required
+                                <input type="text" name="first_name" id="first_name" data-required
                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black">
                             </div>
                             <div>
                                 <label for="last_name" class="block text-sm font-medium text-gray-700">姓</label>
-                                <input type="text" name="last_name" id="last_name" required
+                                <input type="text" name="last_name" id="last_name" data-required
                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black">
                             </div>
                         </div>
                         <div>
                             <label for="phone" class="block text-sm font-medium text-gray-700">手机号</label>
-                            <input type="tel" name="phone" id="phone" required
+                            <input type="tel" name="phone" id="phone" data-required
                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black">
                         </div>
                         <div>
                             <label for="email" class="block text-sm font-medium text-gray-700">邮箱</label>
-                            <input type="email" name="email" id="email" required
+                            <input type="email" name="email" id="email" data-required
                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black">
                         </div>
 
@@ -111,24 +132,27 @@
                                 <select name="province" id="id_province" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
                                     <option value="">请选择省份</option>
                                 </select>
+                                <input type="hidden" name="province_name" id="id_province_name">
                             </div>
                             <div>
                                 <label for="id_city" class="block text-sm font-medium text-gray-700">城市</label>
                                 <select name="city" id="id_city" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
                                     <option value="">请选择城市</option>
                                 </select>
+                                <input type="hidden" name="city_name" id="id_city_name">
                             </div>
                             <div>
                                 <label for="id_district" class="block text-sm font-medium text-gray-700">区县</label>
                                 <select name="district" id="id_district" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
                                     <option value="">请选择区县</option>
                                 </select>
+                                <input type="hidden" name="district_name" id="id_district_name">
                             </div>
                         </div>
 
                         <div>
                             <label for="address_line" class="block text-sm font-medium text-gray-700">详细地址</label>
-                            <input type="text" name="address_line" id="address_line" required
+                            <input type="text" name="address_line" id="address_line" data-required
                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black">
                         </div>
 
@@ -157,7 +181,7 @@
 <script>
 // 中国省市区数据加载函数
 function loadProvinces() {
-    const provinceSelect = document.getElementById('province');
+    const provinceSelect = document.getElementById('id_province');
     // 遍历省份数据（86 代表中国）
     if (typeof pcaa !== 'undefined' && pcaa['86']) {
         for (let code in pcaa['86']) {
@@ -172,11 +196,11 @@ function loadProvinces() {
 }
 
 function loadCities(provinceCode) {
-    const citySelect = document.getElementById('city');
+    const citySelect = document.getElementById('id_city');
     citySelect.innerHTML = '<option value="">请选择</option>';
-    const districtSelect = document.getElementById('district');
+    const districtSelect = document.getElementById('id_district');
     districtSelect.innerHTML = '<option value="">请选择</option>';
-    
+
     if (provinceCode && typeof pcaa !== 'undefined' && pcaa[provinceCode]) {
         for (let code in pcaa[provinceCode]) {
             let option = document.createElement('option');
@@ -188,9 +212,9 @@ function loadCities(provinceCode) {
 }
 
 function loadDistricts(provinceCode, cityCode) {
-    const districtSelect = document.getElementById('district');
+    const districtSelect = document.getElementById('id_district');
     districtSelect.innerHTML = '<option value="">请选择</option>';
-    
+
     if (provinceCode && cityCode && typeof pcaa !== 'undefined' && pcaa[cityCode]) {
         for (let code in pcaa[cityCode]) {
             let option = document.createElement('option');
@@ -207,28 +231,118 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('china-area-data 库未加载，请检查网络连接或 CDN 是否可用');
         return;
     }
-    
-    const provinceSelect = document.getElementById('province');
-    const citySelect = document.getElementById('city');
-    const districtSelect = document.getElementById('district');
-    
+
+    const provinceSelect = document.getElementById('id_province');
+    const citySelect = document.getElementById('id_city');
+    const districtSelect = document.getElementById('id_district');
+
     loadProvinces();
-    
+
     provinceSelect.addEventListener('change', function() {
         loadCities(this.value);
+        // 更新省份名称隐藏字段
+        const selectedOption = this.options[this.selectedIndex];
+        document.getElementById('id_province_name').value = selectedOption.text;
     });
-    
+
     citySelect.addEventListener('change', function() {
         loadDistricts(provinceSelect.value, this.value);
+        // 更新城市名称隐藏字段
+        const selectedOption = this.options[this.selectedIndex];
+        document.getElementById('id_city_name').value = selectedOption.text;
+    });
+
+    districtSelect.addEventListener('change', function() {
+        // 更新区县名称隐藏字段
+        const selectedOption = this.options[this.selectedIndex];
+        document.getElementById('id_district_name').value = selectedOption.text;
     });
 });
 function toggleNewAddress() {
     const newForm = document.getElementById('new-address-form');
+    const addressRadios = document.querySelectorAll('input[name="address_id"]');
     if (newForm.style.display === 'none') {
         newForm.style.display = 'block';
+        addressRadios.forEach(function(r) { r.checked = false; });
     } else {
         newForm.style.display = 'none';
     }
 }
+
+// 点击已有地址时隐藏新地址表单
+document.addEventListener('change', function(e) {
+    if (e.target.name === 'address_id') {
+        document.getElementById('new-address-form').style.display = 'none';
+    }
+});
+
+// 提交时仅在新地址表单可见时才校验必填字段
+document.getElementById('checkout-form').addEventListener('submit', function(e) {
+    const newForm = document.getElementById('new-address-form');
+    if (newForm.style.display === 'none') {
+        return; // 使用已有地址，不校验
+    }
+    const fields = document.querySelectorAll('#new-address-form [data-required]');
+    for (let i = 0; i < fields.length; i++) {
+        if (!fields[i].value.trim()) {
+            e.preventDefault();
+            fields[i].focus();
+            fields[i].style.borderColor = 'red';
+            alert('请填写' + (fields[i].previousElementSibling || fields[i].closest('div').querySelector('label')).textContent);
+            return;
+        }
+    }
+});
+
+// 优惠券应用逻辑
+document.getElementById('apply-coupon-btn').addEventListener('click', function() {
+    const couponCode = document.getElementById('coupon-code').value.trim();
+    const messageEl = document.getElementById('coupon-message');
+    const appliedCouponInput = document.getElementById('applied-coupon-code');
+
+    if (!couponCode) {
+        messageEl.textContent = '请输入优惠券代码';
+        messageEl.className = 'text-sm mt-2 text-red-600';
+        messageEl.classList.remove('hidden');
+        return;
+    }
+
+    // 发送AJAX请求验证优惠券
+    fetch('{% url "orders:apply_coupon" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
+        },
+        body: JSON.stringify({ coupon_code: couponCode })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            messageEl.textContent = '优惠券应用成功！';
+            messageEl.className = 'text-sm mt-2 text-green-600';
+            messageEl.classList.remove('hidden');
+
+            // 更新隐藏字段
+            appliedCouponInput.value = data.coupon_code;
+
+            // 更新价格显示
+            const discountRow = document.getElementById('discount-row');
+            discountRow.classList.remove('hidden');
+            document.getElementById('coupon-display').textContent = data.coupon_code;
+            document.getElementById('discount-amount').textContent = data.discount_display;
+            document.getElementById('final-total').textContent = data.final_total_display;
+        } else {
+            messageEl.textContent = data.error;
+            messageEl.className = 'text-sm mt-2 text-red-600';
+            messageEl.classList.remove('hidden');
+        }
+    })
+    .catch(error => {
+        messageEl.textContent = '网络错误，请重试';
+        messageEl.className = 'text-sm mt-2 text-red-600';
+        messageEl.classList.remove('hidden');
+    });
+});
 </script>
 {% endblock %}

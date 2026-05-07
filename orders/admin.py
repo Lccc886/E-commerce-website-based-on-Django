@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Order, OrderItem
+from .models import Order, OrderItem, Coupon, CouponUsage
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
@@ -46,3 +46,21 @@ class OrderAdmin(admin.ModelAdmin):
         updated = queryset.update(status='cancelled')
         self.message_user(request, f'{updated} 个订单已标记为已取消')
     mark_as_cancelled.short_description = '标记为已取消'
+
+
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    list_display = ('code', 'discount_type', 'discount_value', 'min_order_amount',
+                    'valid_from', 'valid_to', 'usage_limit', 'used_count', 'active')
+    list_filter = ('active', 'discount_type', 'valid_from', 'valid_to')
+    search_fields = ('code',)
+    list_editable = ('active',)
+    ordering = ('-valid_from',)
+
+
+@admin.register(CouponUsage)
+class CouponUsageAdmin(admin.ModelAdmin):
+    list_display = ('user', 'coupon', 'order', 'used_at')
+    list_filter = ('used_at',)
+    search_fields = ('user__username', 'coupon__code')
+    readonly_fields = ('user', 'coupon', 'order', 'used_at')

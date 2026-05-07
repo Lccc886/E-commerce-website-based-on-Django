@@ -1,7 +1,6 @@
-from datetime import timezone
-
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 from goods.models import Product
 
 
@@ -10,15 +9,19 @@ class Coupon(models.Model):
         ('fixed', '固定金额'),
         ('percent', '百分比折扣'),
     )
-    code = models.CharField(max_length=50, unique=True)
-    discount_type = models.CharField(max_length=10, choices=DISCOUNT_TYPE_CHOICES)
-    discount_value = models.DecimalField(max_digits=10, decimal_places=2)  # 固定金额或百分比数值
-    valid_from = models.DateTimeField()
-    valid_to = models.DateTimeField()
-    min_order_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    usage_limit = models.PositiveIntegerField(default=1)  # 每个用户可用次数
-    used_count = models.PositiveIntegerField(default=0)
-    active = models.BooleanField(default=True)
+    code = models.CharField(max_length=50, unique=True, verbose_name="优惠券代码")
+    discount_type = models.CharField(max_length=10, choices=DISCOUNT_TYPE_CHOICES, verbose_name="折扣类型")
+    discount_value = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="折扣值")
+    valid_from = models.DateTimeField(verbose_name="有效期开始")
+    valid_to = models.DateTimeField(verbose_name="有效期结束")
+    min_order_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="最低订单金额")
+    usage_limit = models.PositiveIntegerField(default=1, verbose_name="使用次数限制")
+    used_count = models.PositiveIntegerField(default=0, verbose_name="已使用次数")
+    active = models.BooleanField(default=True, verbose_name="是否激活")
+
+    class Meta:
+        verbose_name = "优惠券"
+        verbose_name_plural = "优惠券"
 
     def __str__(self):
         return self.code
@@ -46,8 +49,6 @@ class Order(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    coupon = models.ForeignKey('Coupon', on_delete=models.SET_NULL, null=True, blank=True)
-    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     paid = models.BooleanField(default=False, verbose_name="已支付")
     STATUS_CHOICES = (
         ('pending', '待支付'),
@@ -56,6 +57,12 @@ class Order(models.Model):
         ('completed', '已完成'),
         ('cancelled', '已取消'),
     )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    paid_at = models.DateTimeField(null=True, blank=True, verbose_name="支付时间")
+    coupon = models.ForeignKey(Coupon, null=True, blank=True, on_delete=models.SET_NULL, verbose_name="优惠券")
+    discount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="折扣金额")
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
     class Meta:
         ordering = ['-created']
         verbose_name = "订单"
@@ -65,7 +72,10 @@ class Order(models.Model):
         return f'Order {self.id}'
 
     def get_total_cost(self):
-        return sum(item.get_cost() for item in self.items.all())
+        total = sum(item.get_cost() for item in self.items.all())
+        if self.discount:
+            total -= self.discount
+        return total
 
     def mark_as_paid(self):
         self.status = 'paid'
@@ -82,7 +92,6 @@ class Order(models.Model):
         self.save()
 
     def cancel(self):
-        # 取消订单时恢复库存
         if self.status == 'pending':
             for item in self.items.all():
                 product = item.product
@@ -91,23 +100,15 @@ class Order(models.Model):
             self.status = 'cancelled'
             self.save()
 
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    paid_at = models.DateTimeField(null=True, blank=True)
-
-    coupon = models.ForeignKey(Coupon, null=True, blank=True, on_delete=models.SET_NULL)
-    discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-
-    def get_total_cost(self):
-        total = sum(item.get_cost() for item in self.items.all())
-        if self.discount:
-            total -= self.discount
-        return total
-
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='order_items')
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    quantity = models.PositiveIntegerField(default=1)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name="订单")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='order_items', verbose_name="商品")
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="单价")
+    quantity = models.PositiveIntegerField(default=1, verbose_name="数量")
+
+    class Meta:
+        verbose_name = "订单项"
+        verbose_name_plural = "订单项"
 
     def __str__(self):
         return str(self.id)
@@ -120,10 +121,12 @@ class OrderItem(models.Model):
 
 
 class CouponUsage(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    coupon = models.ForeignKey(Coupon, on_delete=models.CASCADE)
-    order = models.ForeignKey('Order', on_delete=models.CASCADE)
-    used_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="用户")
+    coupon = models.ForeignKey(Coupon, on_delete=models.CASCADE, verbose_name="优惠券")
+    order = models.ForeignKey('Order', on_delete=models.CASCADE, verbose_name="订单")
+    used_at = models.DateTimeField(auto_now_add=True, verbose_name="使用时间")
 
     class Meta:
+        verbose_name = "优惠券使用记录"
+        verbose_name_plural = "优惠券使用记录"
         unique_together = ('user', 'coupon')

@@ -27,6 +27,7 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),  # 内置认证视图
     path('users/', include('users.urls',namespace='users')),  # 自定义用户相关视图（如注册、个人中心）
     path('orders/', include('orders.urls',namespace='orders')),
+    path('merchant/', include('merchant.urls', namespace='merchant')),  # 商家后台
 ]
 
 # 开发环境下提供媒体文件服务

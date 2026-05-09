@@ -5,25 +5,25 @@
 {% block content %}
 <div class="max-w-md mx-auto px-4 py-16">
     <h1 class="text-3xl font-bold text-center mb-8">登录</h1>
-    
+
     <form method="post" class="space-y-6">
         {% csrf_token %}
         {{ form.non_field_errors }}
-        
+
         <div>
             <label for="id_username" class="block text-sm font-medium text-gray-700">用户名</label>
             <input type="text" name="username" id="id_username" required
                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black">
             {{ form.username.errors }}
         </div>
-        
+
         <div>
             <label for="id_password" class="block text-sm font-medium text-gray-700">密码</label>
             <input type="password" name="password" id="id_password" required
                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black">
             {{ form.password.errors }}
         </div>
-        
+
         <div>
             <button type="submit"
                     class="w-full bg-black text-white py-3 px-4 rounded-md hover:bg-gray-800 transition-colors">
@@ -31,9 +31,17 @@
             </button>
         </div>
     </form>
-    
+
     <p class="mt-4 text-center text-sm text-gray-600">
         还没有账号？ <a href="{% url 'users:register' %}" class="text-black hover:underline">立即注册</a>
     </p>
+
+    <div class="mt-6 pt-6 border-t border-gray-200">
+        <p class="text-center text-sm text-gray-500 mb-3">其他登录方式</p>
+        <a href="{% url 'merchant:login' %}"
+           class="block w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-md hover:bg-gray-200 transition-colors text-center">
+            商家登录
+        </a>
+    </div>
 </div>
 {% endblock %}

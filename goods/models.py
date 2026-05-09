@@ -37,6 +37,31 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # 商家关联
+    merchant = models.ForeignKey(
+        'merchant.Merchant',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='products',
+        verbose_name="商家"
+    )
+
+    # 审核状态
+    REVIEW_STATUS_CHOICES = (
+        ('pending', '待审核'),
+        ('approved', '已通过'),
+        ('rejected', '已拒绝'),
+    )
+    review_status = models.CharField(
+        max_length=20,
+        choices=REVIEW_STATUS_CHOICES,
+        default='approved',
+        verbose_name="审核状态"
+    )
+    reject_reason = models.TextField(blank=True, verbose_name="拒绝原因")
+    reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name="审核时间")
+
     class Meta:
         verbose_name = "商品"
         verbose_name_plural = "商品"

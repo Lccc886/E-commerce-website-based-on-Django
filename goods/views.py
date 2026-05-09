@@ -10,7 +10,10 @@ from orders.models import OrderItem
 
 def product_list(request, category_slug=None):
     category = None
-    products = Product.objects.filter(available=True).select_related('category')
+    products = Product.objects.filter(
+        available=True,
+        review_status='approved'
+    ).select_related('category')
 
     query = request.GET.get('q')
     if query:
@@ -36,7 +39,10 @@ def product_list(request, category_slug=None):
 
 def product_detail(request, slug):
     product = get_object_or_404(
-        Product.objects.select_related('category'), slug=slug, available=True
+        Product.objects.select_related('category'),
+        slug=slug,
+        available=True,
+        review_status='approved'
     )
     user_has_purchased = False
     if request.user.is_authenticated:

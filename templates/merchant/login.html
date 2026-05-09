@@ -1,0 +1,82 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商家登录 - LUMINA</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full mx-4">
+        <div class="bg-white rounded-lg shadow-md p-8">
+            <div class="text-center mb-8">
+                <div class="flex justify-center mb-4">
+                    <div class="w-12 h-12 bg-black text-white flex items-center justify-center rounded-lg font-bold text-2xl">L</div>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900">商家登录</h1>
+                <p class="text-gray-500 text-sm mt-2">登录您的商家后台</p>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="{% if 'success' in message.tags %}bg-green-50 text-green-800{% elif 'error' in message.tags %}bg-red-50 text-red-800{% elif 'warning' in message.tags %}bg-yellow-50 text-yellow-800{% else %}bg-blue-50 text-blue-800{% endif %} px-4 py-3 rounded-lg text-sm mb-4">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700">用户名</label>
+                    <input type="text" name="username" id="username" required
+                           class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">密码</label>
+                    <input type="password" name="password" id="password" required
+                           class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black">
+                </div>
+
+                <div>
+                    <button type="submit"
+                            class="w-full bg-black text-white py-3 px-4 rounded-md hover:bg-gray-800 transition-colors">
+                        登录
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6 text-center text-sm text-gray-600">
+                <p>还没有商家账号？ <a href="{% url 'merchant:register' %}" class="text-black hover:underline font-medium">立即入驻</a></p>
+                <p class="mt-2"><a href="{% url 'login' %}" class="text-gray-500 hover:text-gray-700">用户登录</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

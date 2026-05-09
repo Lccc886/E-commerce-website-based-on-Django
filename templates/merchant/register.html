@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商家入驻 - LUMINA</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="min-h-screen py-12 px-4">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-md p-8">
+            <div class="text-center mb-8">
+                <div class="flex justify-center mb-4">
+                    <div class="w-12 h-12 bg-black text-white flex items-center justify-center rounded-lg font-bold text-2xl">L</div>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900">商家入驻</h1>
+                <p class="text-gray-500 text-sm mt-2">填写以下信息申请成为商家</p>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="{% if 'success' in message.tags %}bg-green-50 text-green-800{% elif 'error' in message.tags %}bg-red-50 text-red-800{% elif 'warning' in message.tags %}bg-yellow-50 text-yellow-800{% else %}bg-blue-50 text-blue-800{% endif %} px-4 py-3 rounded-lg text-sm mb-4">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- 账号信息 -->
+                <div class="border-b border-gray-200 pb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">账号信息</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="id_username" class="block text-sm font-medium text-gray-700">用户名 *</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.username.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="id_email" class="block text-sm font-medium text-gray-700">邮箱 *</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.email.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="id_password" class="block text-sm font-medium text-gray-700">密码 *</label>
+                            {{ form.password }}
+                            {% if form.password.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.password.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="id_password2" class="block text-sm font-medium text-gray-700">确认密码 *</label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.password2.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 店铺信息 -->
+                <div class="border-b border-gray-200 pb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">店铺信息</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label for="id_shop_name" class="block text-sm font-medium text-gray-700">店铺名称 *</label>
+                            {{ form.shop_name }}
+                            {% if form.shop_name.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.shop_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="id_contact_phone" class="block text-sm font-medium text-gray-700">联系电话 *</label>
+                            {{ form.contact_phone }}
+                            {% if form.contact_phone.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.contact_phone.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="id_contact_email" class="block text-sm font-medium text-gray-700">联系邮箱 *</label>
+                            {{ form.contact_email }}
+                            {% if form.contact_email.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.contact_email.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="id_address" class="block text-sm font-medium text-gray-700">店铺地址</label>
+                            {{ form.address }}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="id_description" class="block text-sm font-medium text-gray-700">店铺简介</label>
+                            {{ form.description }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <a href="{% url 'merchant:login' %}" class="text-sm text-gray-600 hover:text-gray-900">已有账号？立即登录</a>
+                    <button type="submit"
+                            class="bg-black text-white py-2 px-6 rounded-md hover:bg-gray-800 transition-colors">
+                        提交申请
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

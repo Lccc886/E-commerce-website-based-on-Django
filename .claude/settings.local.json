@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Recurse -Name -Depth 3 -File)",
+      "Bash(Select-Object -First 200)",
+      "Bash(python *)",
+      "Bash(Get-ChildItem *)",
+      "Bash(pip install *)"
+    ]
+  }
+}

@@ -1,0 +1,94 @@
+{% extends 'merchant/base.html' %}
+
+{% block title %}店铺设置{% endblock %}
+{% block page_title %}店铺设置{% endblock %}
+{% block settings_active %}bg-gray-800 text-white{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white rounded-lg shadow p-6">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label for="id_shop_name" class="block text-sm font-medium text-gray-700">店铺名称 *</label>
+                    {{ form.shop_name }}
+                    {% if form.shop_name.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.shop_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="id_contact_phone" class="block text-sm font-medium text-gray-700">联系电话 *</label>
+                    {{ form.contact_phone }}
+                    {% if form.contact_phone.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.contact_phone.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="id_contact_email" class="block text-sm font-medium text-gray-700">联系邮箱 *</label>
+                    {{ form.contact_email }}
+                    {% if form.contact_email.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.contact_email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="md:col-span-2">
+                    <label for="id_address" class="block text-sm font-medium text-gray-700">店铺地址</label>
+                    {{ form.address }}
+                </div>
+
+                <div class="md:col-span-2">
+                    <label for="id_logo" class="block text-sm font-medium text-gray-700">店铺Logo</label>
+                    {{ form.logo }}
+                    {% if merchant.logo %}
+                    <p class="text-xs text-gray-500 mt-1">当前Logo：<a href="{{ merchant.logo.url }}" target="_blank" class="text-blue-600 hover:underline">查看</a></p>
+                    {% endif %}
+                </div>
+
+                <div class="md:col-span-2">
+                    <label for="id_description" class="block text-sm font-medium text-gray-700">店铺简介</label>
+                    {{ form.description }}
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-gray-200">
+                <button type="submit" class="bg-black text-white px-6 py-2 rounded-md hover:bg-gray-800 transition-colors">
+                    保存设置
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 账号信息 -->
+    <div class="bg-white rounded-lg shadow p-6 mt-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">账号信息</h3>
+        <div class="space-y-3 text-sm">
+            <div>
+                <span class="text-gray-500">用户名：</span>
+                <span class="text-gray-900">{{ request.user.username }}</span>
+            </div>
+            <div>
+                <span class="text-gray-500">邮箱：</span>
+                <span class="text-gray-900">{{ request.user.email }}</span>
+            </div>
+            <div>
+                <span class="text-gray-500">入驻时间：</span>
+                <span class="text-gray-900">{{ merchant.created_at|date:"Y-m-d" }}</span>
+            </div>
+            <div>
+                <span class="text-gray-500">审核状态：</span>
+                {% if merchant.status == 'approved' %}
+                <span class="text-green-600">已通过</span>
+                {% elif merchant.status == 'pending' %}
+                <span class="text-yellow-600">待审核</span>
+                {% else %}
+                <span class="text-red-600">已拒绝</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

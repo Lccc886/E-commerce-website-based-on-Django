@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>审核中 - LUMINA</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full mx-4">
+        <div class="bg-white rounded-lg shadow-md p-8 text-center">
+            <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+
+            {% if merchant.status == 'pending' %}
+                <h1 class="text-xl font-bold text-gray-900 mb-2">审核中</h1>
+                <p class="text-gray-600 mb-6">您的商家申请正在审核中，请耐心等待管理员审批。</p>
+            {% elif merchant.status == 'rejected' %}
+                <h1 class="text-xl font-bold text-red-600 mb-2">审核未通过</h1>
+                <p class="text-gray-600 mb-2">您的商家申请未能通过审核。</p>
+                {% if merchant.reject_reason %}
+                    <p class="text-red-600 text-sm mb-4">原因：{{ merchant.reject_reason }}</p>
+                {% endif %}
+            {% endif %}
+
+            <div class="space-y-3">
+                <a href="{% url 'merchant:login' %}" class="block w-full bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors">
+                    重新登录
+                </a>
+                <a href="{% url 'main:index' %}" class="block w-full text-gray-600 py-2 px-4 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                    返回首页
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,77 @@
+{% extends 'merchant/base.html' %}
+
+{% block title %}订单管理{% endblock %}
+{% block page_title %}订单管理{% endblock %}
+{% block orders_active %}bg-gray-800 text-white{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-4 mb-6">
+    <a href="{% url 'merchant:order_list' %}"
+       class="{% if not status_filter %}bg-black text-white{% else %}bg-white text-gray-700{% endif %} px-4 py-2 rounded-md text-sm">
+        全部
+    </a>
+    <a href="?status=pending"
+       class="{% if status_filter == 'pending' %}bg-black text-white{% else %}bg-white text-gray-700{% endif %} px-4 py-2 rounded-md text-sm">
+        待支付
+    </a>
+    <a href="?status=paid"
+       class="{% if status_filter == 'paid' %}bg-black text-white{% else %}bg-white text-gray-700{% endif %} px-4 py-2 rounded-md text-sm">
+        已支付
+    </a>
+    <a href="?status=shipped"
+       class="{% if status_filter == 'shipped' %}bg-black text-white{% else %}bg-white text-gray-700{% endif %} px-4 py-2 rounded-md text-sm">
+        已发货
+    </a>
+    <a href="?status=completed"
+       class="{% if status_filter == 'completed' %}bg-black text-white{% else %}bg-white text-gray-700{% endif %} px-4 py-2 rounded-md text-sm">
+        已完成
+    </a>
+</div>
+
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">订单号</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">收货人</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">金额</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建时间</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for order in orders %}
+            <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{{ order.id }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.first_name }} {{ order.last_name }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">¥{{ order.total_amount }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {% if order.status == 'pending' %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">待支付</span>
+                    {% elif order.status == 'paid' %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">已支付</span>
+                    {% elif order.status == 'shipped' %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">已发货</span>
+                    {% elif order.status == 'completed' %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span>
+                    {% else %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">已取消</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.created|date:"Y-m-d H:i" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <a href="{% url 'merchant:order_detail' order.id %}" class="text-blue-600 hover:text-blue-900">查看</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                    暂无订单
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

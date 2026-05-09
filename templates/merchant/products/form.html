@@ -1,0 +1,87 @@
+{% extends 'merchant/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block products_active %}bg-gray-800 text-white{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white rounded-lg shadow p-6">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="id_name" class="block text-sm font-medium text-gray-700">商品名称 *</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="id_slug" class="block text-sm font-medium text-gray-700">URL别名 *</label>
+                    {{ form.slug }}
+                    {% if form.slug.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.slug.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="id_category" class="block text-sm font-medium text-gray-700">分类 *</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.category.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="id_price" class="block text-sm font-medium text-gray-700">价格 *</label>
+                    {{ form.price }}
+                    {% if form.price.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.price.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="id_stock" class="block text-sm font-medium text-gray-700">库存 *</label>
+                    {{ form.stock }}
+                    {% if form.stock.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.stock.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="id_image" class="block text-sm font-medium text-gray-700">商品图片</label>
+                    {{ form.image }}
+                    {% if product and product.image %}
+                    <p class="text-xs text-gray-500 mt-1">当前图片：<a href="{{ product.image.url }}" target="_blank" class="text-blue-600 hover:underline">查看</a></p>
+                    {% endif %}
+                </div>
+
+                <div class="md:col-span-2">
+                    <label for="id_description" class="block text-sm font-medium text-gray-700">商品描述 *</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.description.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="flex items-center">
+                        {{ form.is_new }}
+                        <span class="ml-2 text-sm text-gray-700">标记为新品</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                <a href="{% url 'merchant:product_list' %}" class="text-gray-600 hover:text-gray-900">返回列表</a>
+                <button type="submit" class="bg-black text-white px-6 py-2 rounded-md hover:bg-gray-800 transition-colors">
+                    保存
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

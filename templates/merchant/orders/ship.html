@@ -1,0 +1,44 @@
+{% extends 'merchant/base.html' %}
+
+{% block title %}发货{% endblock %}
+{% block page_title %}订单 #{{ order.id }} 发货{% endblock %}
+{% block orders_active %}bg-gray-800 text-white{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">确认发货</h3>
+
+        <div class="mb-6">
+            <h4 class="text-sm font-medium text-gray-700 mb-2">商品列表</h4>
+            <div class="bg-gray-50 rounded-lg p-4">
+                {% for item in merchant_items %}
+                <div class="flex justify-between items-center py-2">
+                    <span class="text-sm text-gray-900">{{ item.product.name }} x {{ item.quantity }}</span>
+                    <span class="text-sm text-gray-500">¥{{ item.price }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label for="tracking_number" class="block text-sm font-medium text-gray-700">物流单号（选填）</label>
+                <input type="text" name="tracking_number" id="tracking_number"
+                       class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black"
+                       placeholder="请输入物流单号">
+            </div>
+
+            <div class="flex justify-end gap-4 pt-4 border-t border-gray-200">
+                <a href="{% url 'merchant:order_detail' order.id %}" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    取消
+                </a>
+                <button type="submit" class="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800">
+                    确认发货
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

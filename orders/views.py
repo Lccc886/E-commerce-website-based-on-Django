@@ -1,5 +1,7 @@
 from decimal import Decimal
 import json
+import uuid
+from datetime import datetime
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -9,9 +11,18 @@ from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
-from goods.models import Product
+from goods.models import Product, ProductSKU
 from users.models import Address
-from .models import Order, OrderItem, Coupon, CouponUsage
+from .models import Order, OrderItem, Coupon, CouponUsage, Payment
+from points.views import award_purchase_points
+
+
+def _parse_cart_key(cart_key):
+    """解析购物车key，返回(product_id, sku_id)"""
+    parts = cart_key.split('_')
+    product_id = int(parts[0])
+    sku_id = int(parts[1]) if len(parts) > 1 else None
+    return product_id, sku_id
 
 
 def _build_cart_items(cart):
@@ -19,25 +30,50 @@ def _build_cart_items(cart):
     if not cart:
         return [], Decimal('0')
 
-    product_ids = [int(pid) for pid in cart.keys()]
+    # 收集所有商品ID和SKU ID
+    product_ids = set()
+    sku_ids = set()
+    for cart_key in cart.keys():
+        product_id, sku_id = _parse_cart_key(cart_key)
+        product_ids.add(product_id)
+        if sku_id:
+            sku_ids.add(sku_id)
+
+    # 批量查询商品和SKU
     products = {
         p.id: p
         for p in Product.objects.filter(id__in=product_ids, available=True)
     }
+    skus = {
+        s.id: s
+        for s in ProductSKU.objects.filter(id__in=sku_ids)
+    }
 
     cart_items = []
     total_price = Decimal('0')
-    for product_id_str, quantity in cart.items():
-        product = products.get(int(product_id_str))
+    for cart_key, quantity in cart.items():
+        product_id, sku_id = _parse_cart_key(cart_key)
+        product = products.get(product_id)
         if not product:
             continue
+        sku = skus.get(sku_id) if sku_id else None
         quantity = int(quantity)
-        subtotal = product.price * quantity
+
+        # 确定价格
+        if sku:
+            price = sku.price
+        else:
+            price = product.price
+
+        subtotal = price * quantity
         total_price += subtotal
         cart_items.append({
             'product': product,
+            'sku': sku,
             'quantity': quantity,
+            'price': price,
             'subtotal': subtotal,
+            'cart_key': cart_key,
         })
     return cart_items, total_price
 
@@ -158,8 +194,10 @@ def checkout(request):
                     OrderItem.objects.create(
                         order=order,
                         product=item['product'],
-                        price=item['product'].price,
+                        sku=item.get('sku'),
+                        price=item['price'],
                         quantity=item['quantity'],
+                        specs_snapshot=item['sku'].specs if item.get('sku') else {},
                     )
                 if coupon:
                     CouponUsage.objects.create(
@@ -220,4 +258,120 @@ def apply_coupon(request):
         'discount_display': f'-${discount}',
         'final_total': str(total_price - discount),
         'final_total_display': f'${total_price - discount}',
+    })
+
+
+# ==================== 支付相关视图 ====================
+
+@login_required
+def payment_create(request, order_id):
+    """创建支付订单"""
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+
+    # 检查订单状态
+    if order.status != 'pending':
+        messages.error(request, '该订单无法支付')
+        return redirect('users:profile')
+
+    if request.method == 'POST':
+        payment_method = request.POST.get('payment_method', 'alipay')
+
+        # 检查是否已有支付记录
+        if hasattr(order, 'payment'):
+            payment = order.payment
+            if payment.status == 'pending':
+                return redirect('orders:payment_sandbox', payment_id=payment.id)
+            elif payment.status == 'success':
+                messages.info(request, '该订单已支付')
+                return redirect('users:profile')
+
+        # 创建支付记录
+        trade_no = f"PAY{datetime.now().strftime('%Y%m%d%H%M%S')}{uuid.uuid4().hex[:8].upper()}"
+        payment = Payment.objects.create(
+            order=order,
+            payment_method=payment_method,
+            trade_no=trade_no,
+            total_amount=order.total_amount,
+            status='pending',
+        )
+
+        return redirect('orders:payment_sandbox', payment_id=payment.id)
+
+    return render(request, 'orders/payment/method_select.html', {'order': order})
+
+
+@login_required
+def payment_sandbox(request, payment_id):
+    """沙箱支付页面"""
+    payment = get_object_or_404(Payment, id=payment_id, order__user=request.user)
+
+    if payment.status != 'pending':
+        return redirect('orders:payment_result', payment_id=payment.id)
+
+    # 计算支付超时时间（30分钟）
+    expire_time = payment.created_at.timestamp() + 30 * 60
+
+    context = {
+        'payment': payment,
+        'order': payment.order,
+        'expire_time': int(expire_time),
+        'payment_method_display': dict(Payment.PAYMENT_METHOD_CHOICES).get(payment.payment_method),
+    }
+    return render(request, 'orders/payment/sandbox.html', context)
+
+
+@login_required
+def payment_callback(request, payment_id):
+    """模拟支付回调"""
+    payment = get_object_or_404(Payment, id=payment_id, order__user=request.user)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'pay':
+            # 模拟支付成功
+            payment.mark_as_success()
+
+            # 发放购物积分
+            try:
+                points = award_purchase_points(request.user, payment.order)
+                if points > 0:
+                    messages.success(request, f'支付成功！获得{points}积分')
+                else:
+                    messages.success(request, '支付成功！')
+            except Exception:
+                messages.success(request, '支付成功！')
+
+            return redirect('orders:payment_result', payment_id=payment.id)
+
+        elif action == 'cancel':
+            # 取消支付
+            payment.mark_as_cancelled()
+            messages.info(request, '支付已取消')
+            return redirect('users:profile')
+
+    return redirect('orders:payment_sandbox', payment_id=payment.id)
+
+
+@login_required
+def payment_result(request, payment_id):
+    """支付结果页"""
+    payment = get_object_or_404(Payment, id=payment_id, order__user=request.user)
+
+    context = {
+        'payment': payment,
+        'order': payment.order,
+        'payment_method_display': dict(Payment.PAYMENT_METHOD_CHOICES).get(payment.payment_method),
+        'status_display': dict(Payment.STATUS_CHOICES).get(payment.status),
+    }
+    return render(request, 'orders/payment/result.html', context)
+
+
+@login_required
+def payment_status(request, payment_id):
+    """查询支付状态API"""
+    payment = get_object_or_404(Payment, id=payment_id, order__user=request.user)
+    return JsonResponse({
+        'status': payment.status,
+        'paid_at': payment.paid_at.isoformat() if payment.paid_at else None,
     })

@@ -3,8 +3,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse
 
-from .models import Category, Product, Wishlist, Review
+from .models import Category, Product, Wishlist, Review, ProductSKU
 from orders.models import OrderItem
 
 
@@ -51,9 +52,50 @@ def product_detail(request, slug):
             order__paid=True,
             product=product,
         ).exists()
+
+    # 获取SKU数据
+    skus = product.skus.all().order_by('id')
+    default_sku = product.get_default_sku()
+
+    # 构建规格数据结构
+    specs_data = {}
+    for spec in product.specs.all().order_by('sort_order'):
+        values = [value.value for value in spec.values.all().order_by('sort_order')]
+        specs_data[spec.name] = values
+
+    # 构建SKU映射
+    sku_map = {}
+    for sku in skus:
+        sku_map[sku.id] = {
+            'id': sku.id,
+            'price': str(sku.price),
+            'original_price': str(sku.original_price) if sku.original_price else None,
+            'stock': sku.stock,
+            'specs': sku.specs,
+            'is_default': sku.is_default,
+            'image': sku.image.url if sku.image else None,
+        }
+
     return render(request, 'goods/product_detail.html', {
         'product': product,
         'user_has_purchased': user_has_purchased,
+        'skus': skus,
+        'default_sku': default_sku,
+        'specs_data': specs_data,
+        'sku_map': sku_map,
+    })
+
+
+def get_sku_info(request, product_id, sku_id):
+    """获取SKU信息的API"""
+    sku = get_object_or_404(ProductSKU, id=sku_id, product_id=product_id)
+    return JsonResponse({
+        'id': sku.id,
+        'price': str(sku.price),
+        'original_price': str(sku.original_price) if sku.original_price else None,
+        'stock': sku.stock,
+        'specs': sku.specs,
+        'image': sku.image.url if sku.image else None,
     })
 
 

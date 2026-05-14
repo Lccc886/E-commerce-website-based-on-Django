@@ -4,8 +4,8 @@ import string
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import update_session_auth_hash, login
-from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm, AuthenticationForm
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.mail import EmailMessage
@@ -18,6 +18,30 @@ from .forms import UserProfileForm, ProfileForm, AddressForm, RegisterForm
 
 def generate_code():
     return ''.join(random.choices(string.digits, k=6))
+
+
+def user_login(request):
+    """用户登录"""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect('main:index')
+        else:
+            messages.error(request, '用户名或密码错误')
+
+    form = AuthenticationForm()
+    return render(request, 'registration/login.html', {'form': form})
+
+
+def user_logout(request):
+    """用户退出登录"""
+    logout(request)
+    messages.success(request, '已成功退出登录')
+    return redirect('main:index')
 
 
 def register(request):

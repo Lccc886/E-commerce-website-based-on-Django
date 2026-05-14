@@ -28,6 +28,8 @@ urlpatterns = [
     path('users/', include('users.urls',namespace='users')),  # 自定义用户相关视图（如注册、个人中心）
     path('orders/', include('orders.urls',namespace='orders')),
     path('merchant/', include('merchant.urls', namespace='merchant')),  # 商家后台
+    path('points/', include('points.urls', namespace='points')),  # 积分系统
+    path('analytics/', include('analytics.urls', namespace='analytics')),  # 数据可视化
 ]
 
 # 开发环境下提供媒体文件服务

@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'users',
     'orders',
     'merchant',
+    'points',
+    'analytics',
 ]
 
 MIDDLEWARE = [
@@ -162,3 +164,14 @@ SIMPLEUI_ANALYSIS = False   # 关闭使用统计
 SIMPLEUI_HEADER = True      # 显示顶部栏
 SIMPLEUI_LOGO = 'https://www.djangoproject.com/m/img/site/hdr_logo.png' # 可以换成你的 logo 地址
 SIMPLEUI_DEFAULT_THEME = 'admin.lte.css' # 设置默认主题
+
+# 积分配置
+POINTS_CONFIG = {
+    'PURCHASE_RATE': 1,  # 每消费1元获得1积分
+    'CHECKIN_BASE': 10,  # 签到基础积分
+    'CHECKIN_BONUS': {   # 连续签到奖励
+        7: 20,
+        14: 30,
+        30: 50,
+    },
+}

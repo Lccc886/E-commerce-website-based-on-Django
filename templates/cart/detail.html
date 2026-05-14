@@ -24,16 +24,31 @@
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-900">{{ item.product.name }}</h3>
                                 <p class="text-sm text-gray-500">{{ item.product.category.name }}</p>
+                                {% if item.specs %}
+                                <p class="text-sm text-gray-400 mt-1">
+                                    {% for spec_name, spec_value in item.specs.items %}
+                                        {{ spec_name }}: {{ spec_value }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                </p>
+                                {% endif %}
                             </div>
                             <p class="text-lg font-bold text-gray-900 sm:text-right">${{ item.subtotal|floatformat:2 }}</p>
                         </div>
-                        
+
+                        <!-- 价格显示 -->
+                        <div class="mt-1 text-sm text-gray-500">
+                            单价: ${{ item.price|floatformat:2 }}
+                        </div>
+
                         <!-- 数量调整和删除 -->
                         <div class="mt-4 flex items-center justify-between">
                             <form action="{% url 'cart:cart_update' item.product.id %}" method="post" class="flex items-center gap-2">
                                 {% csrf_token %}
-                                <label for="quantity-{{ item.product.id }}" class="text-sm text-gray-600">数量</label>
-                                <select name="quantity" id="quantity-{{ item.product.id }}" 
+                                {% if item.sku %}
+                                <input type="hidden" name="sku_id" value="{{ item.sku.id }}">
+                                {% endif %}
+                                <label for="quantity-{{ item.cart_key }}" class="text-sm text-gray-600">数量</label>
+                                <select name="quantity" id="quantity-{{ item.cart_key }}"
                                         class="w-16 rounded-md border-gray-200 text-sm focus:ring-black focus:border-black"
                                         onchange="this.form.submit()">
                                     {% for i in "1234567890"|make_list %}
@@ -44,9 +59,12 @@
                                 </select>
                                 <noscript><button type="submit" class="text-sm text-black">更新</button></noscript>
                             </form>
-                            
+
                             <form action="{% url 'cart:cart_remove' item.product.id %}" method="post">
                                 {% csrf_token %}
+                                {% if item.sku %}
+                                <input type="hidden" name="sku_id" value="{{ item.sku.id }}">
+                                {% endif %}
                                 <button type="submit" class="text-sm text-gray-400 hover:text-red-500 transition-colors flex items-center gap-1">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <polyline points="3 6 5 6 21 6"></polyline>

@@ -94,6 +94,109 @@ class Product(models.Model):
             return True
         return False
 
+    def get_default_sku(self):
+        """获取默认SKU"""
+        return self.skus.filter(is_default=True).first() or self.skus.first()
+
+    @property
+    def total_sku_stock(self):
+        """获取所有SKU总库存"""
+        return sum(sku.stock for sku in self.skus.all())
+
+    @property
+    def has_sku(self):
+        """判断是否有SKU"""
+        return self.skus.exists()
+
+    @property
+    def min_sku_price(self):
+        """获取最低SKU价格"""
+        skus = self.skus.all()
+        if skus:
+            return min(sku.price for sku in skus)
+        return self.price
+
+    @property
+    def max_sku_price(self):
+        """获取最高SKU价格"""
+        skus = self.skus.all()
+        if skus:
+            return max(sku.price for sku in skus)
+        return self.price
+
+class ProductSpec(models.Model):
+    """商品规格模板（如颜色、尺码）"""
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='specs', verbose_name="商品")
+    name = models.CharField(max_length=50, verbose_name="规格名称")  # 如：颜色、尺码
+    sort_order = models.PositiveIntegerField(default=0, verbose_name="排序")
+
+    class Meta:
+        verbose_name = "商品规格"
+        verbose_name_plural = "商品规格"
+        unique_together = ('product', 'name')
+        ordering = ['sort_order', 'id']
+
+    def __str__(self):
+        return f"{self.product.name} - {self.name}"
+
+
+class ProductSpecValue(models.Model):
+    """规格值（如红色、XL）"""
+    spec = models.ForeignKey(ProductSpec, on_delete=models.CASCADE, related_name='values', verbose_name="规格")
+    value = models.CharField(max_length=50, verbose_name="规格值")  # 如：红色、XL
+    sort_order = models.PositiveIntegerField(default=0, verbose_name="排序")
+
+    class Meta:
+        verbose_name = "规格值"
+        verbose_name_plural = "规格值"
+        unique_together = ('spec', 'value')
+        ordering = ['sort_order', 'id']
+
+    def __str__(self):
+        return f"{self.spec.name}: {self.value}"
+
+
+class ProductSKU(models.Model):
+    """商品SKU（库存单位）"""
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='skus', verbose_name="商品")
+    sku_code = models.CharField(max_length=100, unique=True, verbose_name="SKU编码")
+    specs = models.JSONField(default=dict, verbose_name="规格组合")  # {"颜色": "红色", "尺码": "XL"}
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="SKU价格")
+    original_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="原价")
+    stock = models.PositiveIntegerField(default=0, verbose_name="库存")
+    image = models.ImageField(upload_to='products/sku/', blank=True, null=True, verbose_name="SKU图片")
+    is_default = models.BooleanField(default=False, verbose_name="默认SKU")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "商品SKU"
+        verbose_name_plural = "商品SKU"
+        ordering = ['id']
+
+    def __str__(self):
+        spec_str = ', '.join([f"{k}:{v}" for k, v in self.specs.items()])
+        return f"{self.product.name} ({spec_str})"
+
+    @property
+    def display_price(self):
+        """显示价格（如果有原价则显示原价）"""
+        return self.price
+
+    def decrease_stock(self, quantity):
+        """扣减库存"""
+        if self.stock >= quantity:
+            self.stock -= quantity
+            self.save()
+            return True
+        return False
+
+    def increase_stock(self, quantity):
+        """增加库存"""
+        self.stock += quantity
+        self.save()
+
+
 class Wishlist(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wishlist')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='wishlisted_by')

@@ -103,8 +103,10 @@ class Order(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name="订单")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='order_items', verbose_name="商品")
+    sku = models.ForeignKey('goods.ProductSKU', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="SKU")
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="单价")
     quantity = models.PositiveIntegerField(default=1, verbose_name="数量")
+    specs_snapshot = models.JSONField(default=dict, blank=True, verbose_name="规格快照")  # 下单时的规格信息
 
     class Meta:
         verbose_name = "订单项"
@@ -115,6 +117,13 @@ class OrderItem(models.Model):
 
     def get_cost(self):
         return self.price * self.quantity
+
+    @property
+    def specs_display(self):
+        """显示规格信息"""
+        if self.specs_snapshot:
+            return ', '.join([f"{k}: {v}" for k, v in self.specs_snapshot.items()])
+        return "-"
 
 
 
@@ -130,3 +139,51 @@ class CouponUsage(models.Model):
         verbose_name = "优惠券使用记录"
         verbose_name_plural = "优惠券使用记录"
         unique_together = ('user', 'coupon')
+
+
+class Payment(models.Model):
+    """支付记录（模拟沙箱）"""
+    PAYMENT_METHOD_CHOICES = (
+        ('alipay', '支付宝'),
+        ('wechat', '微信支付'),
+    )
+    STATUS_CHOICES = (
+        ('pending', '待支付'),
+        ('success', '支付成功'),
+        ('failed', '支付失败'),
+        ('cancelled', '已取消'),
+    )
+
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='payment', verbose_name="订单")
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, verbose_name="支付方式")
+    trade_no = models.CharField(max_length=64, unique=True, verbose_name="交易号")
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="支付金额")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="支付状态")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
+    paid_at = models.DateTimeField(null=True, blank=True, verbose_name="支付时间")
+
+    class Meta:
+        verbose_name = "支付记录"
+        verbose_name_plural = "支付记录"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"支付记录 {self.trade_no}"
+
+    def mark_as_success(self):
+        """标记支付成功"""
+        self.status = 'success'
+        self.paid_at = timezone.now()
+        self.save()
+        # 同时更新订单状态
+        self.order.mark_as_paid()
+
+    def mark_as_failed(self):
+        """标记支付失败"""
+        self.status = 'failed'
+        self.save()
+
+    def mark_as_cancelled(self):
+        """标记支付取消"""
+        self.status = 'cancelled'
+        self.save()

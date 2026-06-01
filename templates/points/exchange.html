@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}积分兑换 - LUMINA{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="mb-8">
+        <a href="{% url 'points:points_overview' %}" class="text-sm text-gray-500 hover:text-black transition-colors">&larr; 返回积分中心</a>
+    </div>
+
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">积分兑换</h1>
+        <div class="bg-purple-50 px-4 py-2 rounded-lg">
+            <span class="text-sm text-purple-600">可用积分：</span>
+            <span class="text-xl font-bold text-purple-700">{{ account.balance }}</span>
+        </div>
+    </div>
+
+    {% if items %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for item in items %}
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-black transition-colors">
+            <div class="aspect-square bg-gray-100">
+                {% if item.image %}
+                    <img src="{{ item.image.url }}" alt="{{ item.name }}" class="w-full h-full object-cover">
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-gray-400">
+                        <svg class="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
+                        </svg>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="p-4">
+                <h3 class="font-semibold text-gray-900 mb-2">{{ item.name }}</h3>
+                {% if item.description %}
+                <p class="text-sm text-gray-500 mb-3 line-clamp-2">{{ item.description }}</p>
+                {% endif %}
+                <div class="flex justify-between items-center">
+                    <div class="text-orange-600 font-bold">
+                        {{ item.points_required }} 积分
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        库存: {{ item.stock }}
+                    </div>
+                </div>
+                <a href="{% url 'points:exchange_item' item.id %}"
+                   class="mt-4 block w-full text-center bg-black text-white py-2 rounded-lg hover:bg-gray-800 transition-colors
+                          {% if account.balance < item.points_required or item.stock <= 0 %}opacity-50 cursor-not-allowed{% endif %}">
+                    {% if item.stock <= 0 %}
+                        已兑完
+                    {% elif account.balance < item.points_required %}
+                        积分不足
+                    {% else %}
+                        立即兑换
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-16 bg-white rounded-xl border border-gray-200">
+        <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
+        </svg>
+        <p class="text-gray-500">暂无可兑换商品</p>
+        <a href="{% url 'points:points_overview' %}" class="inline-block mt-4 text-black hover:underline">返回积分中心</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

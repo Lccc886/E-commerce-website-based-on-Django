@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}支付结果 - LUMINA{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100 py-12">
+    <div class="max-w-lg mx-auto px-4">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            {% if payment.status == 'success' %}
+            <!-- 支付成功 -->
+            <div class="p-8 text-center">
+                <div class="w-20 h-20 bg-green-100 rounded-full mx-auto mb-6 flex items-center justify-center">
+                    <svg class="w-10 h-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">支付成功</h1>
+                <p class="text-gray-500 mb-6">您的订单已支付成功，我们将尽快为您发货</p>
+
+                <div class="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+                    <div class="flex justify-between text-sm mb-2">
+                        <span class="text-gray-500">订单编号</span>
+                        <span class="text-gray-900">#{{ order.id }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm mb-2">
+                        <span class="text-gray-500">支付金额</span>
+                        <span class="text-gray-900 font-semibold">${{ payment.total_amount|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm mb-2">
+                        <span class="text-gray-500">支付方式</span>
+                        <span class="text-gray-900">{{ payment_method_display }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">支付时间</span>
+                        <span class="text-gray-900">{{ payment.paid_at|date:"Y-m-d H:i" }}</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <a href="{% url 'users:profile' %}" class="flex-1 bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors text-center">
+                        查看订单
+                    </a>
+                    <a href="{% url 'main:index' %}" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors text-center">
+                        继续购物
+                    </a>
+                </div>
+            </div>
+
+            {% elif payment.status == 'failed' %}
+            <!-- 支付失败 -->
+            <div class="p-8 text-center">
+                <div class="w-20 h-20 bg-red-100 rounded-full mx-auto mb-6 flex items-center justify-center">
+                    <svg class="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">支付失败</h1>
+                <p class="text-gray-500 mb-6">支付过程中出现问题，请重新尝试</p>
+
+                <div class="flex gap-3">
+                    <a href="{% url 'orders:payment_create' order.id %}" class="flex-1 bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors text-center">
+                        重新支付
+                    </a>
+                    <a href="{% url 'users:profile' %}" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors text-center">
+                        查看订单
+                    </a>
+                </div>
+            </div>
+
+            {% elif payment.status == 'cancelled' %}
+            <!-- 支付取消 -->
+            <div class="p-8 text-center">
+                <div class="w-20 h-20 bg-yellow-100 rounded-full mx-auto mb-6 flex items-center justify-center">
+                    <svg class="w-10 h-10 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">支付已取消</h1>
+                <p class="text-gray-500 mb-6">您已取消本次支付</p>
+
+                <div class="flex gap-3">
+                    <a href="{% url 'orders:payment_create' order.id %}" class="flex-1 bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors text-center">
+                        重新支付
+                    </a>
+                    <a href="{% url 'users:profile' %}" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors text-center">
+                        查看订单
+                    </a>
+                </div>
+            </div>
+
+            {% else %}
+            <!-- 待支付 -->
+            <div class="p-8 text-center">
+                <div class="w-20 h-20 bg-blue-100 rounded-full mx-auto mb-6 flex items-center justify-center pulse-animation">
+                    <svg class="w-10 h-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">等待支付</h1>
+                <p class="text-gray-500 mb-6">请完成支付</p>
+
+                <a href="{% url 'orders:payment_sandbox' payment.id %}" class="block w-full bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors text-center">
+                    去支付
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<style>
+    .pulse-animation {
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+</style>
+{% endblock %}

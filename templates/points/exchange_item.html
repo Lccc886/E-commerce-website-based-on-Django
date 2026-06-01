@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}兑换 {{ item.name }} - LUMINA{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="mb-8">
+        <a href="{% url 'points:exchange_list' %}" class="text-sm text-gray-500 hover:text-black transition-colors">&larr; 返回兑换商城</a>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="aspect-video bg-gray-100">
+            {% if item.image %}
+                <img src="{{ item.image.url }}" alt="{{ item.name }}" class="w-full h-full object-cover">
+            {% else %}
+                <div class="w-full h-full flex items-center justify-center text-gray-400">
+                    <svg class="w-24 h-24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
+                    </svg>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="p-6">
+            <h1 class="text-2xl font-bold text-gray-900 mb-4">{{ item.name }}</h1>
+
+            {% if item.description %}
+            <p class="text-gray-600 mb-6">{{ item.description }}</p>
+            {% endif %}
+
+            <div class="flex items-center gap-4 mb-6">
+                <div class="text-orange-600 text-2xl font-bold">
+                    {{ item.points_required }} 积分
+                </div>
+                <div class="text-sm text-gray-500">
+                    库存: {{ item.stock }}
+                </div>
+            </div>
+
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">您的积分</span>
+                    <span class="font-semibold">{{ account.balance }}</span>
+                </div>
+                <div class="flex justify-between text-sm mt-2">
+                    <span class="text-gray-600">兑换后剩余</span>
+                    <span class="font-semibold {% if account.balance >= item.points_required %}text-green-600{% else %}text-red-600{% endif %}">
+                        {{ account.balance|add:item.points_required|add:item.points_required }}
+                    </span>
+                </div>
+            </div>
+
+            {% if account.balance >= item.points_required and item.stock > 0 %}
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">收货地址</label>
+                    <input type="text" name="address" required
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-black focus:border-black"
+                           placeholder="请输入详细收货地址">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">联系电话</label>
+                    <input type="tel" name="phone" required
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-black focus:border-black"
+                           placeholder="请输入联系电话">
+                </div>
+                <button type="submit" class="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors">
+                    确认兑换（消耗 {{ item.points_required }} 积分）
+                </button>
+            </form>
+            {% elif item.stock <= 0 %}
+            <div class="text-center py-4 text-gray-500">
+                商品已兑完
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <p class="text-red-600 mb-2">积分不足，还差 {{ item.points_required|add:account.balance }} 积分</p>
+                <a href="{% url 'main:index' %}" class="text-black hover:underline">去购物赚积分</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

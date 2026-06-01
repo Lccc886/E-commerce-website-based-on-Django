@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}积分明细 - LUMINA{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="mb-8">
+        <a href="{% url 'points:points_overview' %}" class="text-sm text-gray-500 hover:text-black transition-colors">&larr; 返回积分中心</a>
+    </div>
+
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">积分明细</h1>
+        <div class="text-right">
+            <div class="text-sm text-gray-500">当前积分</div>
+            <div class="text-2xl font-bold text-purple-600">{{ account.balance }}</div>
+        </div>
+    </div>
+
+    {% if records %}
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">时间</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">类型</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">描述</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">积分变动</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">余额</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for record in records %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ record.created_at|date:"Y-m-d H:i" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if record.record_type == 'purchase' %}
+                            <span class="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">购物</span>
+                        {% elif record.record_type == 'checkin' %}
+                            <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">签到</span>
+                        {% elif record.record_type == 'bonus' %}
+                            <span class="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded">奖励</span>
+                        {% elif record.record_type == 'exchange' %}
+                            <span class="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded">兑换</span>
+                        {% elif record.record_type == 'expire' %}
+                            <span class="px-2 py-1 text-xs bg-red-100 text-red-800 rounded">过期</span>
+                        {% else %}
+                            <span class="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded">其他</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-900">
+                        {{ record.description }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">
+                        {% if record.points > 0 %}
+                            <span class="text-green-600">+{{ record.points }}</span>
+                        {% else %}
+                            <span class="text-red-600">{{ record.points }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">
+                        {{ record.balance_after }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-16 bg-white rounded-xl border border-gray-200">
+        <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+        <p class="text-gray-500">暂无积分记录</p>
+        <a href="{% url 'main:index' %}" class="inline-block mt-4 text-black hover:underline">去购物赚积分</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

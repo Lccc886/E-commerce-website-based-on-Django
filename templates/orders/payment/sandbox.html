@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}沙箱支付 - LUMINA{% endblock %}
+
+{% block extra_head %}
+<style>
+    .qr-code-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .pulse-animation {
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100 py-12" x-data="paymentSandbox()">
+    <div class="max-w-lg mx-auto px-4">
+        <!-- 支付卡片 -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <!-- 顶部颜色区域 -->
+            <div class="qr-code-container p-6 text-white text-center">
+                <div class="w-20 h-20 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    {% if payment.payment_method == 'alipay' %}
+                    <svg class="w-10 h-10 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.5 3h-15A1.5 1.5 0 003 4.5v15A1.5 1.5 0 004.5 21h15a1.5 1.5 0 001.5-1.5v-15A1.5 1.5 0 0019.5 3zM12 6c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                    </svg>
+                    {% else %}
+                    <svg class="w-10 h-10 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348z"/>
+                    </svg>
+                    {% endif %}
+                </div>
+                <div class="text-lg font-semibold">{{ payment_method_display }}</div>
+                <div class="text-3xl font-bold mt-2">${{ payment.total_amount|floatformat:2 }}</div>
+            </div>
+
+            <!-- 支付信息 -->
+            <div class="p-6">
+                <!-- 倒计时 -->
+                <div class="text-center mb-6">
+                    <div class="text-sm text-gray-500 mb-1">支付剩余时间</div>
+                    <div class="text-2xl font-bold text-gray-900" x-text="countdown"></div>
+                </div>
+
+                <!-- 订单信息 -->
+                <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                    <div class="text-sm text-gray-500 mb-2">订单信息</div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-600">订单编号</span>
+                        <span class="text-gray-900">#{{ order.id }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">交易号</span>
+                        <span class="text-gray-900 font-mono">{{ payment.trade_no }}</span>
+                    </div>
+                </div>
+
+                <!-- 模拟支付二维码区域 -->
+                <div class="bg-gray-100 rounded-lg p-8 text-center mb-6">
+                    <div class="w-48 h-48 bg-white rounded-lg mx-auto flex items-center justify-center border-2 border-dashed border-gray-300">
+                        <div class="text-center">
+                            <svg class="w-16 h-16 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                            </svg>
+                            <span class="text-sm text-gray-500">模拟二维码</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-4">请使用{{ payment_method_display }}扫描二维码完成支付</p>
+                </div>
+
+                <!-- 模拟支付按钮 -->
+                <div class="space-y-3">
+                    <form action="{% url 'orders:payment_callback' payment.id %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="pay">
+                        <button type="submit" class="w-full bg-black text-white py-4 rounded-xl font-semibold hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            模拟支付成功
+                        </button>
+                    </form>
+
+                    <form action="{% url 'orders:payment_callback' payment.id %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="cancel">
+                        <button type="submit" class="w-full bg-gray-100 text-gray-600 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors">
+                            取消支付
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 提示信息 -->
+        <div class="mt-6 text-center">
+            <p class="text-sm text-gray-500">
+                <span class="inline-flex items-center gap-1">
+                    <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    沙箱模拟环境
+                </span>
+                - 不会产生真实扣款
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function paymentSandbox() {
+    return {
+        countdown: '29:59',
+        expireTime: {{ expire_time }},
+
+        init() {
+            this.startCountdown();
+            this.pollPaymentStatus();
+        },
+
+        startCountdown() {
+            const update = () => {
+                const now = Math.floor(Date.now() / 1000);
+                const remaining = this.expireTime - now;
+
+                if (remaining <= 0) {
+                    this.countdown = '00:00';
+                    alert('支付超时，请重新下单');
+                    window.location.href = '{% url "users:profile" %}';
+                    return;
+                }
+
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                this.countdown = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                setTimeout(update, 1000);
+            };
+            update();
+        },
+
+        pollPaymentStatus() {
+            // 每5秒检查一次支付状态
+            setInterval(() => {
+                fetch('{% url "orders:payment_status" payment.id %}')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            window.location.href = '{% url "orders:payment_result" payment.id %}';
+                        }
+                    });
+            }, 5000);
+        }
+    }
+}
+</script>
+{% endblock %}

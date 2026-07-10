@@ -155,7 +155,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.qq.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = '1957762910@qq.com'
+EMAIL_HOST_USER = 'XXXXXXXXX@XX.com'
 EMAIL_HOST_PASSWORD = 'fkohniexfidedbec'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 

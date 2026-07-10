@@ -208,7 +208,7 @@ def checkout(request):
 
                 request.session['cart'] = {}
                 messages.success(request, '订单已创建，请尽快支付。')
-                return redirect('users:profile')
+                return redirect('orders:payment_create', order_id=order.id)
 
         except Exception as e:
             messages.error(request, f'订单创建失败：{str(e)}')

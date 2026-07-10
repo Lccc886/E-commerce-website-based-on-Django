@@ -92,13 +92,19 @@ class Order(models.Model):
         self.save()
 
     def cancel(self):
+        """取消订单并恢复库存（含 SKU 级别）"""
         if self.status == 'pending':
             for item in self.items.all():
-                product = item.product
-                product.stock += item.quantity
-                product.save()
+                if item.sku:
+                    # 恢复 SKU 库存
+                    item.sku.stock += item.quantity
+                    item.sku.save(update_fields=['stock'])
+                else:
+                    # 恢复商品库存
+                    item.product.stock += item.quantity
+                    item.product.save(update_fields=['stock'])
             self.status = 'cancelled'
-            self.save()
+            self.save(update_fields=['status'])
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name="订单")

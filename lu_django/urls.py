@@ -21,6 +21,9 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # RESTful API
+    path('api/v1/', include('lu_django.api_urls')),
+    # 旧版模板视图（后续逐步废弃）
     path('', include('main.urls')),
     path('goods/', include('goods.urls',namespace='goods')),
     path('cart/', include('cart.urls',namespace='cart')),

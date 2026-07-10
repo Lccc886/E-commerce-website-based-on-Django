@@ -50,9 +50,13 @@ def merchant_login(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            # 检查是否是商家
-            if hasattr(user, 'merchant'):
+            # 检查是否是商家（try/except 代替 hasattr：Django 反向关联
+            # 在记录不存在时会抛异常，hasattr 无法正确判断）
+            try:
                 merchant = user.merchant
+            except Exception:
+                merchant = None
+            if merchant is not None:
                 if merchant.status == 'approved':
                     login(request, user)
                     return redirect('merchant:dashboard')
@@ -336,10 +340,12 @@ def pending(request):
     if not request.user.is_authenticated:
         return redirect('merchant:login')
 
-    if not hasattr(request.user, 'merchant'):
+    # try/except 代替 hasattr：Django 反向 OneToOne 在记录不存在时抛异常
+    try:
+        merchant = request.user.merchant
+    except Exception:
         return redirect('merchant:register')
 
-    merchant = request.user.merchant
     if merchant.status == 'approved':
         return redirect('merchant:dashboard')
 
